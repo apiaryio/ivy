@@ -1,7 +1,15 @@
 # Block event loop, thus async & able to be behind queue
 factorial = (num, cb) ->
-  if num < 0  then return cb new Error "Factorial not defined for negative values"
-  if num == 0 then return cb null, 1
+  try
+    res = factorialSync num
+    cb null, res
+  catch err
+    cb err
+
+
+factorialSync = (num) ->
+  if num < 0  then return new Error "Factorial not defined for negative values"
+  if num == 0 then return 1
 
   result = 1
 
@@ -9,8 +17,10 @@ factorial = (num, cb) ->
     result = num * result
     num   -= 1
 
-  cb null, num
+  return result
+
 
 module.exports = {
   factorial
+  factorialSync
 }

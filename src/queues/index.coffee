@@ -27,6 +27,10 @@ class QueueManager
   # Proxy attributes follow
   ###
 
+  ###
+  # Management
+  ###
+
 
   # Pause the queue. No tasks will be distributed to workers.
   pause: ->
@@ -41,9 +45,22 @@ class QueueManager
     @queue.getQueueContent.apply @queue, arguments
 
 
+  ###
+  # Producer
+  ###
+
   sendTask: ->
     @queue.sendTask.apply @queue, arguments
 
+  ###
+  # Listener
+  ###
+
+  listen: ->
+    @queue.listen.apply @queue, arguments
+
+  stopListening: ->
+    @queue.stopListening.apply @queue, arguments
 
 
 queue = new QueueManager()

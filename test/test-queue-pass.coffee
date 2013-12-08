@@ -1,6 +1,8 @@
 {assert}    = require 'chai'
 
-{factorial} = require './testfunc'
+{factorial,
+ factorialSync
+}           = require './testfunc'
 
 ivy         = require '../src'
 
@@ -9,18 +11,13 @@ ivy         = require '../src'
 
 
 describe 'Passing info through queue', ->
+  before ->
+    ivy.registerTask factorialSync, name: 'factorial'
+
   describe 'When I call delayed function on paused queue', ->
     before ->
       queue.pause()
-
-      ivy.registerTask factorial, name: 'factorial'
-
-      ivy.delayedCall factorial, 5
-
-
-    after ->
-      queue.resume()
-
+      ivy.delayedCallSync factorialSync, 5
 
     describe 'and inspect paused queue', ->
       tasks = undefined
@@ -37,4 +34,21 @@ describe 'Passing info through queue', ->
       it 'I should see task scheduled for factorial', ->
         assert.equal 'factorial', tasks[0].name
 
+    describe 'and when I attach consumer', ->
+      before ->
+        ivy.listen
+          type: 'memory'
+
+      after ->
+        ivy.stopListening()
+
+
+      describe 'and resume queue', ->
+        before ->
+          queue.resume immediatePush: true
+
+        it 'queue should be empty', (done) ->
+          queue.getQueueContent (err, queueTasks) ->
+            assert.equal 0, queueTasks.length
+            done err
 
