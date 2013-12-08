@@ -13,7 +13,7 @@ describe 'Passing info through queue', ->
     before ->
       queue.pause()
 
-      ivy.registerTask ivy
+      ivy.registerTask factorial, name: 'factorial'
 
       ivy.delayedCall factorial, 5
 
@@ -31,7 +31,10 @@ describe 'Passing info through queue', ->
 
           done err
 
-      it 'I should see function there', ->
+      it 'I should see task there', ->
         assert.equal 1, tasks.length
+
+      it 'I should see task scheduled for factorial', ->
+        assert.equal 'factorial', tasks[0].name
 
 

@@ -15,6 +15,9 @@ class Ivy
     if not name
       name = func.name
 
+    if not name
+      throw new Error "Cannot determine task name. Please pass it explicitly through options."
+
     @taskRegistry[name] = {
       func: func,
       options
