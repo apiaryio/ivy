@@ -1,5 +1,5 @@
 {
-    "name": "ivy
+    "name": "ivy",
     "description": "Queue wrapper with node.js-ish interface.",
     "version": "0.0.1",
     "author": "Apiary Inc <support@apiary.io>",

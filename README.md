@@ -35,20 +35,24 @@ var finished  = function resolved(result) {
     console.log('result is', result);
 }
 
-if (process.env.NODE_ENV==='producer') {
-   // task must be explicitly registered for now
-   // we'd like to change that in the future
-   ivy.registerTask(factorial, {
-       'name':   'testpackage.factorial',
-       'queue':  'testpackage' //,
-   //    'route':  'testpackage.route1',
-   //    'priority': 0,
-   //    retry:    true,
-   //    maxRetries: 10
-   });
 
+// task must be explicitly registered for now
+// we'd like to change that in the future
+
+// Also, task must be both available and registered on both client
+// and producer
+ivy.registerTask(factorial, {
+   'name':   'testpackage.factorial',
+   'queue':  'testpackage' //,
+//    'route':  'testpackage.route1',
+//    'priority': 0,
+//    retry:    true,
+//    maxRetries: 10
+});
+
+if (process.env.NODE_ENV==='producer') {
   // execute task
-  ivy.delay(factorial, 5);
+  ivy.delayedCall(factorial, 5);
 
 }
 elseif (process.env.NODE_ENV==='worker') {
