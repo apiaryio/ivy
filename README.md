@@ -2,6 +2,22 @@
 
 [Ivy](https://github.com/apiaryio/ivy) is [node.js](http://nodejs.org) queue library focused on easy, yet flexible task execution.
 
+### Problem solved by Ivy
+
+Ivy touches the following workflow:
+
+* Function execution is scheduled from application ("producer") in similar way as executing function directly
+* Call is serialized and transferred through queue to worker
+  * Worker job is considered essential. It should be thus delivered through robust, HA queue, such as AMQP, RabbitMQ, SQS, IronMQ or similar.
+  * Arguments are send as a stringifyed JSON. There is no attempt to magically recover original object; called functions should thus rely only on attribute access, not method calls
+* Worker executes function on shared code base, with arguments fetched from queue task
+  * If execution errors, task stays in MQ or is returned there, depending on implementation
+  * If it fails permanently, please beware of JSON.stringify(new Error()) idiosyncrasy
+* Producer is notified back about completion
+  * Speed over robustness is preferred as this should be about notifying client back, not further work
+  * Thus, redis pub/sub is preferred
+  * If non-notification work should follow after execution is done, it should be scheduled as another task in MQ
+
 Assumptions:
 
 * Shared codebase
