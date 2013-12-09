@@ -7,7 +7,7 @@
 Ivy touches the following workflow:
 
 * Function execution is scheduled from application ("producer") in similar way as executing function directly
-* Call is serialized and transferred through queue to worker
+* Call is serialized and transferred through queue to worker. Producer subscribes to notifier for completion
   * Worker job is considered essential. It should be thus delivered through robust, HA queue, such as AMQP, RabbitMQ, SQS, IronMQ or similar.
   * Arguments are send as a stringifyed JSON. There is no attempt to magically recover original object; called functions should thus rely only on attribute access, not method calls
 * Worker executes function on shared code base, with arguments fetched from queue task
@@ -18,15 +18,12 @@ Ivy touches the following workflow:
   * Thus, redis pub/sub is preferred
   * If non-notification work should follow after execution is done, it should be scheduled as another task in MQ
 
-Assumptions:
-
-* Shared codebase
-* IronMQ (but we want to add other backends)
-* Redis for "async task done, resume callback"
-
 Thoughts:
 
-* Provide optimalisation for properly decoupled apps that don't need to overuse subscribeTo + closure
+* Only tasks/functions with async interface supported. Assumptions:
+  * callback is last argument provided
+  * callback must be present
+  * first argument of callback signature is either Error or null
 
 ### Installation
 
@@ -57,6 +54,9 @@ var finished  = function resolved(result) {
 
 // Also, task must be both available and registered on both client
 // and producer
+
+// ...and name must be unique globally. "package.module.submodule.function"
+// pattern is highly encouraged.
 ivy.registerTask(factorial, {
    'name':   'testpackage.factorial',
    'queue':  'testpackage' //,
@@ -68,7 +68,9 @@ ivy.registerTask(factorial, {
 
 if (process.env.NODE_ENV==='producer') {
   // execute task
-  ivy.delayedCall(factorial, 5);
+  ivy.delayedCall(factorial, 5, function(err, result) {
+    console.log("Factorial result is", result);
+  });
 
 }
 elseif (process.env.NODE_ENV==='worker') {
@@ -92,7 +94,7 @@ elseif (process.env.NODE_ENV==='worker') {
 
 }
 
-ivy.pubsub({
+ivy.notifier({
     'type': 'redis',
     'url':  'redis://name:password@hostname:port'
 });
