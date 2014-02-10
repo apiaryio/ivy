@@ -33,11 +33,19 @@ class Ivy
     else
       return @taskRegistry[name].func.apply @taskRegistry[name].func, args
 
+  ###
+  # Syntax: ivy.delayedCall function, arg1, arg2, argN,
+  #   function callback (err, passedArgsCustomSignature),
+  #   delayedCallCallback (err)
+  ###
   delayedCall: ->
-    func = arguments.slice 0, 1
-    cb   = arguments.slice arguments.length-1
-    if arguments.length > 2
-      args = arguments.slice 1, arguments.length-1
+    fargs               = Array.prototype.slice.call(arguments)
+    func                = fargs.slice 0, 1
+    delayedCallCallback = fargs.slice arguments.length-1
+    functionCallback    = fargs.slice arguments.length-2, fargs.slice arguments.length-1
+
+    if fargs.length > 2
+      args = fargs.slice 1, arguments.length-1
     else
       args = []
 
@@ -45,7 +53,9 @@ class Ivy
       name:    @taskObjectRegistry[func]
       options: @taskRegistry[@taskObjectRegistry[func]].options
       args:    JSON.parse JSON.stringify args
-    , cb
+      
+    , functionCallback, (err) ->
+      delayedCallCallback err
 
   delayedCallSync: ->
     fargs = Array.prototype.slice.call(arguments)

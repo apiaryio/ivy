@@ -12,7 +12,8 @@ ivy         = require '../src'
 
 describe 'Passing info through queue', ->
   before ->
-    ivy.registerTask factorialSync, name: 'factorial'
+    ivy.registerTask factorialSync, name: 'factorialSync'
+    ivy.registerTask factorial,     name: 'factorial', callback: ->
 
   describe 'When I call delayed function on paused queue', ->
     before ->
@@ -32,7 +33,7 @@ describe 'Passing info through queue', ->
         assert.equal 1, tasks.length
 
       it 'I should see task scheduled for factorial', ->
-        assert.equal 'factorial', tasks[0].name
+        assert.equal 'factorialSync', tasks[0].name
 
     describe 'and when I attach consumer', ->
       before ->
@@ -52,3 +53,25 @@ describe 'Passing info through queue', ->
             assert.equal 0, queueTasks.length
             done err
 
+  describe 'When I call delayed async function on paused queue', ->
+    before (done) ->
+      queue.pause()
+      ivy.delayedCall factorial, 5, (err, computedFactorial) ->
+        console.log "Computed factorial #{computedFactorial}", err
+      , (err) ->
+        done err
+
+    describe 'and inspect paused queue', ->
+      tasks = undefined
+
+      before (done) ->
+        queue.getQueueContent (err, queueTasks) ->
+          tasks = queueTasks
+
+          done err
+
+      it 'I should see task there', ->
+        assert.equal 1, tasks.length
+
+      it 'I should see task scheduled for factorial', ->
+        assert.equal 'factorial', tasks[0].name

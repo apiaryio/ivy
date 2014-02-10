@@ -5,7 +5,6 @@ consumeTasks = (tasks) ->
 
   for task in tasks
     result = ivy.callTask task.name, task.args
-    console.error 'result is', result
 
 
 module.exports = {
