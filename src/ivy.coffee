@@ -12,7 +12,11 @@ class Ivy
     @listener = null
 
 
-  registerTask: (func, options={}) ->
+  registerTask: (func, funcCb, options={}) ->
+    if typeof funcCb is 'object'
+      options = funcCb
+      funcCb  = null
+
     {name} = options
     if not name
       name = func.name
@@ -21,7 +25,8 @@ class Ivy
       throw new Error "Cannot determine task name. Please pass it explicitly through options."
 
     @taskRegistry[name] = {
-      func: func,
+      func
+      funcCb
       options
     }
 
@@ -35,14 +40,12 @@ class Ivy
 
   ###
   # Syntax: ivy.delayedCall function, arg1, arg2, argN,
-  #   function callback (err, passedArgsCustomSignature),
   #   delayedCallCallback (err)
   ###
   delayedCall: ->
     fargs               = Array.prototype.slice.call(arguments)
-    func                = fargs.slice 0, 1
-    delayedCallCallback = fargs.slice arguments.length-1
-    functionCallback    = fargs.slice arguments.length-2, fargs.slice arguments.length-1
+    func                = fargs.slice(0, 1)[0]
+    delayedCallCallback = fargs.slice(arguments.length-1)[0]
 
     if fargs.length > 2
       args = fargs.slice 1, arguments.length-1
@@ -53,8 +56,7 @@ class Ivy
       name:    @taskObjectRegistry[func]
       options: @taskRegistry[@taskObjectRegistry[func]].options
       args:    JSON.parse JSON.stringify args
-      
-    , functionCallback, (err) ->
+    , (err) ->
       delayedCallCallback err
 
   delayedCallSync: ->

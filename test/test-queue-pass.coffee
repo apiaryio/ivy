@@ -11,9 +11,15 @@ ivy         = require '../src'
 
 
 describe 'Passing info through queue', ->
+  factorialFinishedCounter = 0
+
   before ->
-    ivy.registerTask factorialSync, name: 'factorialSync'
-    ivy.registerTask factorial,     name: 'factorial', callback: ->
+
+    factorialFinished = (err) ->
+      factorialFinishedCounter += 1
+
+    ivy.registerTask factorialSync,                name: 'factorialSync'
+    ivy.registerTask factorial, factorialFinished, name: 'factorial'
 
   describe 'When I call delayed function on paused queue', ->
     before ->
@@ -56,9 +62,7 @@ describe 'Passing info through queue', ->
   describe 'When I call delayed async function on paused queue', ->
     before (done) ->
       queue.pause()
-      ivy.delayedCall factorial, 5, (err, computedFactorial) ->
-        console.log "Computed factorial #{computedFactorial}", err
-      , (err) ->
+      ivy.delayedCall factorial, 5, (err) ->
         done err
 
     describe 'and inspect paused queue', ->

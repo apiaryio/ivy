@@ -32,6 +32,10 @@ Thoughts:
   * callback must be present
   * first argument of callback signature is either Error or null
 
+* Explicit is better then implicit
+  * In first version, use explicit task registrations
+  * Leave continuation and function "backresolve" to v2
+
 ### Installation
 
 Installation is done via NPM, by running ```npm install ivy```
@@ -41,7 +45,7 @@ Installation is done via NPM, by running ```npm install ivy```
 * Super easy to use
 
 
-### Quick example
+### Version 2 quick example (called TODO)
 
 ```javascript
 
@@ -64,7 +68,7 @@ var finished  = function resolved(result) {
 
 // ...and name must be unique globally. "package.module.submodule.function"
 // pattern is highly encouraged.
-ivy.registerTask(factorial, {
+ivy.registerTask(factorial, finished, {
    'name':   'testpackage.factorial',
    'queue':  'testpackage' //,
 //    'route':  'testpackage.route1',
