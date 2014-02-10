@@ -15,8 +15,8 @@
     },
     "devDependencies": {
         "coffee-script": "~1.6.3",
-        "chai": "",
-        "mocha": "",
+        "chai": "~1.9.0",
+        "mocha": "~1.17.1",
         "sinon": ""
     },
     "keywords": [
@@ -24,7 +24,7 @@
     ],
     "scripts": {
         "prepublish": "scripts/build",
-        "test":       "./node_modules/.bin/mocha --compilers \"coffee:coffee-script\""
+        "test":       "./node_modules/.bin/mocha --compilers \"coffee:coffee-script/register\""
     },
     "licenses": [
         {
