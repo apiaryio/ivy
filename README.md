@@ -2,6 +2,13 @@
 
 [Ivy](https://github.com/apiaryio/ivy) is [node.js](http://nodejs.org) queue library focused on easy, yet flexible task execution.
 
+### Progress
+
+* [ ] Queuing a task to queue
+* [ ] Consuming queue task
+* [ ] Notifications back to caller
+* [ ] Continuation of original workflow
+
 ### Problem solved by Ivy
 
 Ivy touches the following workflow:
