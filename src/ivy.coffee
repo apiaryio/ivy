@@ -1,6 +1,7 @@
 {EventEmitter} = require 'events'
 
 {queue}        = require './queues'
+{notifier}     = require './notifiers'
 
 class Ivy extends EventEmitter
   constructor: (options) ->
@@ -12,6 +13,15 @@ class Ivy extends EventEmitter
     @taskObjectRegistry = {}
 
     super("Ivy")
+
+  # Setup main "singleton" instance of ivy that is used when requiring it
+  setupMain: ->
+    queue.setupMain    @
+    notifier.setupMain @
+
+  ###
+  # Producer & Consumer: Task registration and handling
+  ###
 
   registerTask: (func, funcCb, options={}) ->
     if typeof funcCb is 'object'
@@ -32,6 +42,11 @@ class Ivy extends EventEmitter
     }
 
     @taskObjectRegistry[func] = name
+
+
+  ###
+  # Consumer: Resolving tasks recieved from queue and calling them
+  ###
 
   callTaskSync: (name, args) ->
     if not @taskRegistry[name]
@@ -59,13 +74,32 @@ class Ivy extends EventEmitter
       catch err
         @taskDone err
 
+  ###
+  # Consumer: Pushing resolved tasks back to notification channel
+  ###
+
   taskDone: (err, name, args...) ->
     @emit 'taskExecuted', err, name or 'dummyTaskName', args 
 
+    #@ notifier.sendTaskResult name, args unless err
+
+
   ###
+  # Producer: Resolving task return/call values back to callback/handler
+  #           and resuming workflow
+  ###
+
+  resolveTask: (name, args) ->
+    @taskRegistry[name].funcCb.apply @taskRegistry[name].funcCb, args    
+
+
+  ### 
+  # Producer: Main "start it all" API: Calling "delayed/remote" functions as if they were local
+  ###
+
+
   # Signature: ivy.delayedCall function, arg1, arg2, argN,
   #   delayedCallCallback (err)
-  ###
   delayedCall: ->
     fargs               = Array.prototype.slice.call(arguments)
     func                = fargs.slice(0, 1)[0]
@@ -92,12 +126,32 @@ class Ivy extends EventEmitter
       options: @taskRegistry[@taskObjectRegistry[func]].options
       args:    JSON.parse JSON.stringify args
 
+  ###
+  # Consumer: listening to queue events
+  ###
 
   listen: ->
     queue.listen.apply queue, arguments
 
   stopListening: ->
     queue.stopListening.apply queue, arguments
+
+  ###
+  # Consumer & Producer: consuming/producing task notifications
+  ###
+
+  startNotificationProducer: (options, done) ->
+    notifier.startProducer options, done
+
+  startNotificationConsumer: (options, done) ->
+    notifier.startConsumer options, done
+
+  pauseNotifier: (done) ->
+    notifier.pause done
+
+  resumeNotifier: (done) ->
+    notifier.resume done
+
 
   # resumeQueue: ->
   #   queue.pause.apply queue, arguments

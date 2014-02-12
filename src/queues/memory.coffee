@@ -14,11 +14,14 @@ class MemoryQueue extends EventEmitter
   constructor: ->
     @tasks  = []
     @paused = false
+    @ivy    = null
 
     @listening = false
     @consumeInterval = null
 
     super("MemoryQueue")
+
+  setupMain: (@ivy) ->
 
   pause: ->
     @paused = true

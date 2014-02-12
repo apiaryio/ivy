@@ -35,10 +35,10 @@ Ivy touches the following workflow:
 * Explicit is better then implicit
   * In first version, use explicit task registrations
   * Leave continuation and function "backresolve" to v2
+  * We can implicitly decide whether notifications are producer or consumer: consumer when `listen` is invoked, producer when first `delayedCall` is executed. Make it explicit in v1, we'll see later.
 
 * Task registries must be same on both sides
   * "Protocol" specification for backends in other languages
-
 
 * Serialization boundaries 
   * There are (mostly) no requirements on payload in queues
@@ -87,6 +87,11 @@ ivy.registerTask(factorial, finished, {
 });
 
 if (process.env.NODE_ENV==='producer') {
+  ivy.startNotificationConsumer({
+      'type': 'redis',
+      'url':  'redis://name:password@hostname:port'
+  });
+
   // execute task
   ivy.delayedCall(factorial, 5, function(err, result) {
     console.log("Factorial result is", result);
@@ -94,6 +99,10 @@ if (process.env.NODE_ENV==='producer') {
 
 }
 elseif (process.env.NODE_ENV==='worker') {
+    ivy.startNotificationProducer({
+        'type': 'redis',
+        'url':  'redis://name:password@hostname:port'
+    });
     ivy.listen({
         queue: 'testpackage',
 
@@ -114,8 +123,4 @@ elseif (process.env.NODE_ENV==='worker') {
 
 }
 
-ivy.notifier({
-    'type': 'redis',
-    'url':  'redis://name:password@hostname:port'
-});
 ```

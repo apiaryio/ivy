@@ -19,10 +19,6 @@ describe 'Consuming queue', ->
     factorialFinishedCounter = 0
 
     before (done) ->
-      factorialFinished = (err) ->
-        factorialFinishedCounter += 1
-
-
       ivy.registerTask factorial, factorialFinished, name: 'factorial'
       ivy.delayedCall factorial, 5, (err) ->
         done err
@@ -59,4 +55,9 @@ describe 'Consuming queue', ->
 
       it 'I should have recieved factorial result (5! = 120)', ->
         assert.equal 120, recievedResult
+
+      it 'There should be no task in queue', (done) ->
+        queue.getQueueContent (err, queueTasks) ->
+          assert.equal 0, queueTasks?.length
+          done err
 

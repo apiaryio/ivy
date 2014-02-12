@@ -22,6 +22,10 @@ class QueueManager
       throw new Error "Queue #{name} not available."
 
     @queue = new QUEUE_TYPES[name] options
+    @queue.setupMain if @ivy
+
+  setupMain: (@ivy) ->
+    @queue.setupMain @ivy
 
   ###
   # Proxy attributes follow
