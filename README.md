@@ -25,7 +25,7 @@ Ivy touches the following workflow:
   * Thus, redis pub/sub is preferred
   * If non-notification work should follow after execution is done, it should be scheduled as another task in MQ
 
-Thoughts:
+### Thoughts/assumptions:
 
 * Only tasks/functions with async interface supported. Assumptions:
   * callback is last argument provided
@@ -35,6 +35,15 @@ Thoughts:
 * Explicit is better then implicit
   * In first version, use explicit task registrations
   * Leave continuation and function "backresolve" to v2
+
+* Task registries must be same on both sides
+  * "Protocol" specification for backends in other languages
+
+
+* Serialization boundaries 
+  * There are (mostly) no requirements on payload in queues
+  * Default "protocol" is JSON, should be separated into serialization module/package
+  * Protobufs should be neat choice
 
 ### Installation
 
@@ -90,7 +99,7 @@ elseif (process.env.NODE_ENV==='worker') {
 
         type: 'ironmq',
         auth: {
-            token: process.env.IRONMQ_TOKEN || 'dummy',
+            token:      process.env.IRONMQ_TOKEN || 'dummy',
             project_id: process.env.IRONMQ_PROJECT or 'testpackage'
         },
 

@@ -1,6 +1,8 @@
-{queue} = require './queues'
+{EventEmitter} = require 'events'
 
-class Ivy
+{queue}        = require './queues'
+
+class Ivy extends EventEmitter
   constructor: (options) ->
     {
       @config
@@ -9,8 +11,7 @@ class Ivy
     @taskRegistry       = {}
     @taskObjectRegistry = {}
 
-    @listener = null
-
+    super("Ivy")
 
   registerTask: (func, funcCb, options={}) ->
     if typeof funcCb is 'object'
@@ -32,14 +33,37 @@ class Ivy
 
     @taskObjectRegistry[func] = name
 
+  callTaskSync: (name, args) ->
+    if not @taskRegistry[name]
+      result = new Error "Task #{name} not found in registry on consumer"
+      @taskDone result
+    else
+      try
+        result = @taskRegistry[name].func.apply @taskRegistry[name].func, args
+        @taskDone null, result
+
+      catch err
+        @taskDone err
+      
+    return result
+
   callTask: (name, args) ->
     if not @taskRegistry[name]
-      return new Error "Task #{name} not found in registry on consumer"
+      @taskDone new Error "Task #{name} not found in registry on consumer"
     else
-      return @taskRegistry[name].func.apply @taskRegistry[name].func, args
+      try
+        args.push (err, args...) =>
+          @taskDone err, name, args
+
+        @taskRegistry[name].func.apply @taskRegistry[name].func, args
+      catch err
+        @taskDone err
+
+  taskDone: (err, name, args...) ->
+    @emit 'taskExecuted', err, name or 'dummyTaskName', args 
 
   ###
-  # Syntax: ivy.delayedCall function, arg1, arg2, argN,
+  # Signature: ivy.delayedCall function, arg1, arg2, argN,
   #   delayedCallCallback (err)
   ###
   delayedCall: ->
@@ -75,7 +99,11 @@ class Ivy
   stopListening: ->
     queue.stopListening.apply queue, arguments
 
+  # resumeQueue: ->
+  #   queue.pause.apply queue, arguments
 
+  # pauseQueue: ->
+  #   queue.resume.apply queue, arguments
 
 module.exports = {
   Ivy

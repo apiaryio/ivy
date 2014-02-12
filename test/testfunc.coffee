@@ -1,4 +1,6 @@
-# Block event loop, thus async & able to be behind queue
+
+factorialFinishedCounter = 0
+
 factorial = (num, cb) ->
   try
     res = factorialSync num
@@ -19,8 +21,13 @@ factorialSync = (num) ->
 
   return result
 
+factorialFinished = (err) ->
+  factorialFinishedCounter += 1
+
 
 module.exports = {
   factorial
   factorialSync
+  factorialFinished
+  factorialFinishedCounter
 }

@@ -8,26 +8,28 @@
 
 {consumeTasks} = require '../listener'
 
-PUSH_INTERVAL  = parseInt(process.env.MEMORY_QUEUE_PUSH_INTERVAL) or 1
+CONSUME_INTERVAL  = parseInt(process.env.MEMORY_QUEUE_CONSUME_INTERVAL) or 10
 
 class MemoryQueue extends EventEmitter
   constructor: ->
     @tasks  = []
     @paused = false
 
-    @listener = null
-    @pushInterval = null
+    @listening = false
+    @consumeInterval = null
+
+    super("MemoryQueue")
 
   pause: ->
     @paused = true
-    @pausedInterval = @pushInterval
-    clearInterval(@pushInterval) if @pushInterval
+    @pausedInterval = @consumeInterval
+    clearInterval(@consumeInterval) if @consumeInterval
 
   resume: (options={}) ->
     @paused = false
-    @pushInterval = setInterval (=> @pushTasks), PUSH_INTERVAL if @pausedInterval
+    @consumeInterval = setInterval (=> @consumeTasks), CONSUME_INTERVAL if @pausedInterval
     if options.immediatePush
-      @pushTasks()
+      @consumeTasks()
 
   getQueueContent: (cb) ->
     cb null, @tasks
@@ -36,20 +38,20 @@ class MemoryQueue extends EventEmitter
     @tasks.push {name, options, args}
     cb? null
 
-  pushTasks: ->
+  consumeTasks: ->
     if @tasks.length > 0
       @emit 'tasks', @tasks
       @tasks.length = 0
 
   listen: ->
-    @on 'tasks', consumeTasks
-    @pushInterval = setInterval (=> @pushTasks), PUSH_INTERVAL
+    @on 'tasks', consumeTasks unless @listening
+    @listening = true
+    @consumeInterval = setInterval (=> @consumeTasks()), CONSUME_INTERVAL
 
   stopListening: ->
     @removeListener 'tasks', consumeTasks
-    clearInterval @pushInterval
-    @listener = null
-
+    clearInterval @consumeInterval
+    @listening = false
 
 module.exports = {
   MemoryQueue

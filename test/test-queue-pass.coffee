@@ -1,7 +1,10 @@
 {assert}    = require 'chai'
 
-{factorial,
- factorialSync
+{
+  factorial
+  factorialSync
+  factorialFinished
+  factorialFinishedCounter
 }           = require './testfunc'
 
 ivy         = require '../src'
@@ -14,10 +17,6 @@ describe 'Passing info through queue', ->
   factorialFinishedCounter = 0
 
   before ->
-
-    factorialFinished = (err) ->
-      factorialFinishedCounter += 1
-
     ivy.registerTask factorialSync,                name: 'factorialSync'
     ivy.registerTask factorial, factorialFinished, name: 'factorial'
 
@@ -25,6 +24,9 @@ describe 'Passing info through queue', ->
     before ->
       queue.pause()
       ivy.delayedCallSync factorialSync, 5
+
+    after ->
+      queue.resume()
 
     describe 'and inspect paused queue', ->
       tasks = undefined
@@ -64,6 +66,9 @@ describe 'Passing info through queue', ->
       queue.pause()
       ivy.delayedCall factorial, 5, (err) ->
         done err
+
+    after ->
+      queue.resume()
 
     describe 'and inspect paused queue', ->
       tasks = undefined
