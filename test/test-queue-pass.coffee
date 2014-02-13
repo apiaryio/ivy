@@ -4,7 +4,6 @@
   factorial
   factorialSync
   factorialFinished
-  factorialFinishedCounter
 }           = require './testfunc'
 
 ivy         = require '../src'
@@ -14,7 +13,6 @@ ivy         = require '../src'
 
 
 describe 'Passing info through queue', ->
-  factorialFinishedCounter = 0
 
   before ->
     ivy.registerTask factorialSync,                name: 'factorialSync'

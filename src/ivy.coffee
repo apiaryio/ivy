@@ -89,6 +89,17 @@ class Ivy extends EventEmitter
   #           and resuming workflow
   ###
 
+  taskResultRetrieved: (data) ->
+    try
+      result = JSON.parse data
+    catch err
+      console.error 'IVY_BAD_ARGUMENTS Recieved JSON unparseable function description. Error is: ', err
+      return false
+
+    @resolveTask result.name, result.args
+
+
+
   resolveTask: (name, args) ->
     @taskRegistry[name].funcCb.apply @taskRegistry[name].funcCb, args    
 
@@ -141,16 +152,25 @@ class Ivy extends EventEmitter
   ###
 
   startNotificationProducer: (options, done) ->
+    if typeof options is 'function'
+      done    = options
+      options = {}
     notifier.startProducer options, done
 
   startNotificationConsumer: (options, done) ->
+    if typeof options is 'function'
+      done    = options
+      options = {}
     notifier.startConsumer options, done
 
   pauseNotifier: (done) ->
     notifier.pause done
 
-  resumeNotifier: (done) ->
-    notifier.resume done
+  resumeNotifier: (options, done) ->
+    if typeof options is 'function'
+      done    = options
+      options = {}
+    notifier.resume options, done
 
 
   # resumeQueue: ->

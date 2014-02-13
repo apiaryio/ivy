@@ -19,10 +19,12 @@ class NotificationManager
     @changeNotifier 'memory'
 
   changeNotifier: (name, options={}) ->
-    if not NOTIFIER_TYPES[name]
-      throw new Error "Queue #{name} not available."
+    unless @currentNotifierType is name
+      if not NOTIFIER_TYPES[name]
+        throw new Error "Queue #{name} not available."
 
-    @notifier = new NOTIFIER_TYPES[name] options
+      @notifier = new NOTIFIER_TYPES[name] options
+      @currentNotifierType = name
 
   setupMain: (@ivy) ->
     @notifier.setupMain @ivy

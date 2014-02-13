@@ -4,7 +4,7 @@
   factorial
   factorialSync
   factorialFinished
-  factorialFinishedCounter
+  factorialFinishedCounterObject
 }           = require './testfunc'
 
 ivy         = require '../src'
@@ -16,8 +16,8 @@ ivy         = require '../src'
 describe 'Notifiers', ->
 
   describe 'When set up notifier and pause it', ->
-    
     before (done) ->
+      factorialFinishedCounterObject.value = 0
       ivy.registerTask factorial, factorialFinished, name: 'factorial'
 
       ivy.startNotificationProducer type: 'memory', (err) ->
@@ -42,6 +42,13 @@ describe 'Notifiers', ->
           assert.equal 1, content.length
           assert.deepEqual [null, 5], JSON.parse(content[0]).args
 
+      describe 'and when I start consuming notifiers', ->
+        before (done) ->
+          ivy.resumeNotifier immediate: true, (err) ->
+            if err then return done err
+            ivy.startNotificationConsumer (err) ->
+              done err
 
-
+        it 'factorial should have been called and counter incremented', ->
+          assert.equal 1, factorialFinishedCounterObject.value
 

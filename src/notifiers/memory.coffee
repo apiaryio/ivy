@@ -26,6 +26,13 @@ class MemoryNotifier extends EventEmitter
 
   setupMain: (@ivy) ->
 
+  consumeTasks: ->
+    for taskResult in @taskResults
+      @ivy.taskResultRetrieved taskResult
+
+    @taskResults.length = 0
+
+
   pause: (done) ->
     @paused = true
     @pausedInterval = @consumeInterval
@@ -38,9 +45,11 @@ class MemoryNotifier extends EventEmitter
       options = {}
 
     @paused = false
-    @consumeInterval = setInterval (=> @consumeTasks), CONSUME_INTERVAL if @pausedInterval
-    if options.immediatePush
+    @consumeInterval = setInterval (=> @consumeTasks()), CONSUME_INTERVAL if @pausedInterval
+    if options.immediate
       @consumeTasks()
+
+    done null
 
   startProducer: (options, cb) ->
     @paused   = false
@@ -50,6 +59,11 @@ class MemoryNotifier extends EventEmitter
   startConsumer: (options, cb) ->
     @paused   = false
     @consumer = true
+
+    @consumeInterval = setInterval (=> @consumeTasks()), CONSUME_INTERVAL unless @consumeInterval
+    if options.immediate
+      @consumeTasks()
+
     cb null
 
   getContent: (cb) ->

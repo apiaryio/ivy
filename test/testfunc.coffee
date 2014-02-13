@@ -1,5 +1,7 @@
 
-factorialFinishedCounter = 0
+factorialFinishedCounterObject = {
+  value: 0
+}
 
 factorial = (num, cb) ->
   try
@@ -22,12 +24,12 @@ factorialSync = (num) ->
   return result
 
 factorialFinished = (err) ->
-  factorialFinishedCounter += 1
+  factorialFinishedCounterObject.value += 1
 
 
 module.exports = {
   factorial
   factorialSync
   factorialFinished
-  factorialFinishedCounter
+  factorialFinishedCounterObject
 }
