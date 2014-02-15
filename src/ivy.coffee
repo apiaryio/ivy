@@ -48,37 +48,37 @@ class Ivy extends EventEmitter
   # Consumer: Resolving tasks recieved from queue and calling them
   ###
 
-  callTaskSync: (name, args) ->
+  executeTaskSyncSync: (name, args) ->
     if not @taskRegistry[name]
       result = new Error "Task #{name} not found in registry on consumer"
-      @taskDone result
+      @taskExecuted result
     else
       try
         result = @taskRegistry[name].func.apply @taskRegistry[name].func, args
-        @taskDone null, result
+        @taskExecuted null, result
 
       catch err
-        @taskDone err
+        @taskExecuted err
       
     return result
 
-  callTask: (name, args) ->
+  executeTask: (name, args) ->
     if not @taskRegistry[name]
-      @taskDone new Error "Task #{name} not found in registry on consumer"
+      @taskExecuted new Error "Task #{name} not found in registry on consumer"
     else
       try
         args.push (err, args...) =>
-          @taskDone err, name, args
+          @taskExecuted err, name, args
 
         @taskRegistry[name].func.apply @taskRegistry[name].func, args
       catch err
-        @taskDone err
+        @taskExecuted err
 
   ###
   # Consumer: Pushing resolved tasks back to notification channel
   ###
 
-  taskDone: (err, name, args...) ->
+  taskExecuted: (err, name, args...) ->
     @emit 'taskExecuted', err, name or 'dummyTaskName', args 
 
     #@ notifier.sendTaskResult name, args unless err

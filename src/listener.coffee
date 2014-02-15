@@ -8,7 +8,7 @@ consumeTasks = (tasks) ->
   ivy = require './index'
 
   for task in tasks
-    result = ivy.callTask task.name, task.args
+    result = ivy.executeTask task.name, task.args
 
 listener = new Listener
 
