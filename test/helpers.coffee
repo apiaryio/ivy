@@ -29,7 +29,6 @@ factorialFinished = (err) ->
 
 module.exports = {
   factorial
-  factorialSync
   factorialFinished
   factorialFinishedCounterObject
 }

@@ -48,20 +48,6 @@ class Ivy extends EventEmitter
   # Consumer: Resolving tasks recieved from queue and calling them
   ###
 
-  executeTaskSyncSync: (name, args) ->
-    if not @taskRegistry[name]
-      result = new Error "Task #{name} not found in registry on consumer"
-      @taskExecuted result
-    else
-      try
-        result = @taskRegistry[name].func.apply @taskRegistry[name].func, args
-        @taskExecuted null, result
-
-      catch err
-        @taskExecuted err
-      
-    return result
-
   executeTask: (name, args) ->
     if not @taskRegistry[name]
       @taskExecuted new Error "Task #{name} not found in registry on consumer"
