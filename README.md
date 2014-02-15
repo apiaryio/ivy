@@ -131,6 +131,7 @@ There are a lot of parts and components in distributed environment. This is how 
 * **Queue name**: Inside `Queue` services, `Message`'s are organized into separate, well, queues, identified by name. To avoid naming clashes, those are always referred to as `Queue names` instead of just "queues".
 * **Queue backend**: Particular piece of software implementing `Queue`'s role, i.e. `IronMQ`, `SQS`, `RabbitMQ`, ...
 * **Consumer**: Process designed to consume messages from `Queue` and processing them.
+* **Listener**: Part of the `Consumer` that listens to `Queue` and waits for `Message`s
 * **Message**: Structured data format placed in `Queue`, understood on both ends.
 * **Message serialization**: Particular serialization format used for placing `Message` into `Queue`, i.e. JSON.
 * **Message format**: Particular structure used for particular `Message serialization`, i.e. `{"task": "taskname", "arguments": []}` migth be an example `Message format` for JSON `Message serialization`.
