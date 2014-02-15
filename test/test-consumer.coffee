@@ -5,7 +5,7 @@
   factorialSync
   factorialFinished
   factorialFinishedCounter
-}           = require './testfunc'
+}           = require './helpers'
 
 ivy         = require '../src'
 
