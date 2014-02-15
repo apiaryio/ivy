@@ -30,7 +30,7 @@ describe 'Passing info through queue', ->
       tasks = undefined
 
       before (done) ->
-        queue.getQueueContent (err, queueTasks) ->
+        queue.getScheduledTasks (err, queueTasks) ->
           tasks = queueTasks
 
           done err
@@ -55,7 +55,7 @@ describe 'Passing info through queue', ->
           queue.resume immediatePush: true
 
         it 'queue should be empty', (done) ->
-          queue.getQueueContent (err, queueTasks) ->
+          queue.getScheduledTasks (err, queueTasks) ->
             assert.equal 0, queueTasks.length
             done err
 
@@ -72,7 +72,7 @@ describe 'Passing info through queue', ->
       tasks = undefined
 
       before (done) ->
-        queue.getQueueContent (err, queueTasks) ->
+        queue.getScheduledTasks (err, queueTasks) ->
           tasks = queueTasks
 
           done err

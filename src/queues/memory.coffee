@@ -34,7 +34,7 @@ class MemoryQueue extends EventEmitter
     if options.immediatePush
       @consumeTasks()
 
-  getQueueContent: (cb) ->
+  getScheduledTasks: (cb) ->
     cb null, @tasks
 
   sendTask: ({name, options, args}, cb) ->

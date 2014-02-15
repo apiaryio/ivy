@@ -57,7 +57,7 @@ describe 'Consuming queue', ->
         assert.equal 120, recievedResult
 
       it 'There should be no task in queue', (done) ->
-        queue.getQueueContent (err, queueTasks) ->
+        queue.getScheduledTasks (err, queueTasks) ->
           assert.equal 0, queueTasks?.length
           done err
 

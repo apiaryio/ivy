@@ -45,8 +45,8 @@ class QueueManager
     @queue.resume.apply @queue, arguments
 
   # Return tasks from queue that are ready to be processed
-  getQueueContent: ->
-    @queue.getQueueContent.apply @queue, arguments
+  getScheduledTasks: ->
+    @queue.getScheduledTasks.apply @queue, arguments
 
 
   ###
