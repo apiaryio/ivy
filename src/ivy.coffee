@@ -96,11 +96,11 @@ class Ivy extends EventEmitter
       console.error 'IVY_BAD_ARGUMENTS Recieved JSON unparseable function description. Error is: ', err
       return false
 
-    @resolveTask result.name, result.args
+    @resumeCaller result.name, result.args
 
 
 
-  resolveTask: (name, args) ->
+  resumeCaller: (name, args) ->
     @taskRegistry[name].funcCb.apply @taskRegistry[name].funcCb, args    
 
 

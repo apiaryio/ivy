@@ -126,6 +126,7 @@ Ivy touches the following workflow:
 There are a lot of parts and components in distributed environment. This is how `Ivy` understands them.
 
 * **Producer**: Process that decides some task should not be processed by itself, but instead delegated to another process through queue.
+* **Caller**: Particular function/code where `ivy.delayedCall` has been called.
 * **Queue**: Service/process designed to dispatch messages between processes or services. It ideally processes them in (prioritized) FIFO with one time delivery. Also known as *broker*.
 * **Queue name**: Inside `Queue` services, `Message`'s are organized into separate, well, queues, identified by name. To avoid naming clashes, those are always referred to as `Queue names` instead of just "queues".
 * **Queue backend**: Particular piece of software implementing `Queue`'s role, i.e. `IronMQ`, `SQS`, `RabbitMQ`, ...
@@ -137,6 +138,9 @@ There are a lot of parts and components in distributed environment. This is how 
 * **Scheduled Task**: A way to describe intent of invoking `Task` at some point.
 * **Task status**: A state that describes current state of `Scheduled Task` or `Task`. May be `scheduled` (successfully placed in `Queue`, but not consumed by `Consumer` yet), `running` (processing on consumer), `errored` (some state failed), `successfull` (processing done on consumer and `Notifier` successfully notified) and `done` (`successfull` + `Producer` successfully notified).
 * **Task result**: Data "returned" by `Task` upon its completion with the intent of informing `Producer` about it. While the primary purpose might be computation task that produces an output that is stored in database, it is *not* considered `Task result` if it's not intended for `Producer`. 
+* **Task execution**: The act of running task on `Consumer`. 
+* **Caller resume**: The act of resuming the workflow back on `Producer`, done by calling callback passed to original `delayedCall`.  
+* **Task resolved**: Task has been executed and `Producer` notified -- or there has been an error.
 * **Notifier**: Service/process designed to inform `Producer` about `Task status` and/or `Task result`. Might be same piece of software/service as `Queue`.
 * **Notification channel**: Uniquely-named "queue" used to pass `Task result`s from *any* `Consumer` to *particular* `Producer`. 
 * **Notifier backend**: Particular piece of software implementing `Notifier`'s role, i.e. `IronMQ`, `Redis`, ...
