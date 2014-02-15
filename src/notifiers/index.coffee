@@ -57,8 +57,8 @@ class NotificationManager
 
     @notifier.startConsumer.apply @notifier, arguments
 
-  getContent: ->
-    @notifier.getContent.apply @notifier, arguments
+  getNotifications: ->
+    @notifier.getNotifications.apply @notifier, arguments
 
 
   sendTaskResult: ->

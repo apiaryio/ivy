@@ -37,7 +37,7 @@ describe 'Notifiers', ->
           done err
 
       it "I can see it in notifier's internal storage", ->
-        notifier.getContent (err, content) ->
+        notifier.getNotifications (err, content) ->
           assert.equal null, err
           assert.equal 1, content.length
           assert.deepEqual [null, 5], JSON.parse(content[0]).args

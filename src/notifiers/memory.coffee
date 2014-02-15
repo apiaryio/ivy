@@ -66,7 +66,7 @@ class MemoryNotifier extends EventEmitter
 
     cb null
 
-  getContent: (cb) ->
+  getNotifications: (cb) ->
     cb null, @taskResults
 
   sendTaskResult: ({name, options, args}, cb) ->
