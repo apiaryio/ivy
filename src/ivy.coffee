@@ -135,6 +135,13 @@ class Ivy extends EventEmitter
       args:    JSON.parse JSON.stringify args
 
   ###
+  # Producer: Knowing where to queue tasks
+  ###
+
+  setupQueue: ->
+    queue.setupQueue.apply queue, arguments
+
+  ###
   # Consumer: listening to queue events
   ###
 

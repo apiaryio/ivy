@@ -16,3 +16,5 @@ npm-debug.log
 /lib
 /.idea
 /node_modules
+/iron.json
+

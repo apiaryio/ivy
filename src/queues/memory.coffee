@@ -19,6 +19,9 @@ class MemoryQueue
 
   setupMain: (@ivy) ->
 
+  setupQueue: (@options, cb) ->
+    cb null
+
   pause: ->
     @paused = true
     clearInterval @consumeInterval if @consumeInterval
@@ -35,7 +38,10 @@ class MemoryQueue
     done null
 
   getScheduledTasks: (cb) ->
-    cb null, @tasks
+    tasks = {}
+    for k, v of @tasks
+      tasks[k] = JSON.parse v
+    cb null, tasks
 
   sendTask: ({name, options, args}, cb) ->
     taskId = uuid.v4()

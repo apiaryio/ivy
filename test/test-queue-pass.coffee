@@ -40,7 +40,7 @@ describe 'Passing info through queue', ->
         assert.equal 1, (i for i of tasks).length
 
       it 'I should see task scheduled for factorial', ->
-        assert.equal 'factorial', JSON.parse((v for k,v of tasks)[0]).name
+        assert.equal 'factorial', (v for k,v of tasks)[0].name
 
     describe 'and when I attach consumer', ->
       before ->

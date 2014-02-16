@@ -39,6 +39,19 @@ ivy.registerTask(factorial, finished, {
 });
 
 if (process.env.NODE_ENV==='producer') {
+
+  ivy.setupQueue({
+      queue: 'testpackage',
+
+      type: 'ironmq',
+      auth: {
+          token:      process.env.IRONMQ_TOKEN      || 'dummy',
+          project_id: process.env.IRONMQ_PROJECT_ID || 'testpackage'
+      }
+  });
+
+
+  // optional, only if callback is registered
   ivy.startNotificationConsumer({
       'type': 'redis',
       'url':  'redis://name:password@hostname:port'
@@ -60,8 +73,8 @@ elseif (process.env.NODE_ENV==='worker') {
 
         type: 'ironmq',
         auth: {
-            token:      process.env.IRONMQ_TOKEN || 'dummy',
-            project_id: process.env.IRONMQ_PROJECT or 'testpackage'
+            token:      process.env.IRONMQ_TOKEN   || 'dummy',
+            project_id: process.env.IRONMQ_PROJECT || 'testpackage'
         },
 
         // optional

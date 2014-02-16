@@ -1,5 +1,6 @@
 {EventEmitter} = require 'events'
 
+{IronMQQueue}  = require './ironmq'
 {MemoryQueue}  = require './memory'
 
 # # Interface to queue
@@ -25,8 +26,11 @@
 class QueueManager extends EventEmitter
   QUEUE_TYPES =
     memory: MemoryQueue
+    ironmq: IronMQQueue
 
   constructor: ->
+    @DEFAULT_QUEUE_NAME = 'ivy'
+    
     @changeQueue 'memory'
 
   changeQueue: (name, options={}) ->
@@ -74,6 +78,12 @@ class QueueManager extends EventEmitter
   # Producer
   ###
 
+  setupQueue: (options, cb) ->
+    if options.type
+      @changeQueue options.type, options
+
+    @queue.setupQueue.apply @queue, arguments
+
   sendTask: ->
     @queue.sendTask.apply @queue, arguments
 
@@ -86,7 +96,6 @@ class QueueManager extends EventEmitter
   # taskDoneCallback signature is (err, result) and result must be serializable
   consumeTasks: ->
     @queue.listen.apply @queue, arguments
-
 
   listen: ->
     @queue.listen.apply @queue, arguments
@@ -101,4 +110,5 @@ module.exports = {
   queue
 
   Memory: MemoryQueue
+  IronMQ: IronMQQueue
 }
