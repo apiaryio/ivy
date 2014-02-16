@@ -4,8 +4,6 @@
 # doesn't work or scale accross processes.
 # Yes, you need that even if you don't think so.
 
-{consumeTasks} = require '../listener'
-
 CONSUME_INTERVAL  = parseInt(process.env.MEMORY_NOTIFIER_CONSUME_INTERVAL) or 10
 
 class MemoryNotifier
