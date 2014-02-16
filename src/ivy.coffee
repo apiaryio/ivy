@@ -148,27 +148,27 @@ class Ivy extends EventEmitter
   # Consumer & Producer: consuming/producing task notifications
   ###
 
-  startNotificationProducer: (options, done) ->
+  startNotificationProducer: (options, cb) ->
     if typeof options is 'function'
-      done    = options
+      cb    = options
       options = {}
-    notifier.startProducer options, done
+    notifier.startProducer options, cb
 
-  startNotificationConsumer: (options, done) ->
+  startNotificationConsumer: (options, cb) ->
     if typeof options is 'function'
-      done    = options
+      cb    = options
       options = {}
 
-    notifier.startConsumer options, done
+    notifier.startConsumer options, cb
 
-  pauseNotifier: (done) ->
-    notifier.pause done
+  pauseNotifier: (cb) ->
+    notifier.pause cb
 
-  resumeNotifier: (options, done) ->
+  resumeNotifier: (options, cb) ->
     if typeof options is 'function'
-      done    = options
+      cb    = options
       options = {}
-    notifier.resume options, done
+    notifier.resume options, cb
 
 
   # resumeQueue: ->

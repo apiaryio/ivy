@@ -1,6 +1,7 @@
-{EventEmitter}   = require 'events'
+{EventEmitter}        = require 'events'
 
-{MemoryNotifier} = require './memory'
+{MemoryNotifier}      = require './memory'
+{RedisPubSubNotifier} = require './redis'
 
 # # Interface to notifiers
 #
@@ -15,9 +16,11 @@
 class NotificationManager extends EventEmitter
   NOTIFIER_TYPES =
     memory: MemoryNotifier
+    redis:  RedisPubSubNotifier
 
 
   constructor: ->
+    @DEFAULT_NOTIFICATION_CHANNEL_NAME = 'ivy-notifier'
     @changeNotifier 'memory'
 
   changeNotifier: (name, options={}) ->
@@ -27,6 +30,8 @@ class NotificationManager extends EventEmitter
 
       @notifier = new NOTIFIER_TYPES[name] @, options
       @currentNotifierType = name
+
+      @notifier.setupMain @ivy if @ivy
 
   setupMain: (@ivy) ->
     @notifier.setupMain @ivy
@@ -80,4 +85,5 @@ module.exports = {
   notifier
 
   Memory: MemoryNotifier
+  Redis:  RedisPubSubNotifier
 }
