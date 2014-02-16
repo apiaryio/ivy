@@ -1,5 +1,4 @@
 {assert}    = require 'chai'
-#{describe}  = require 'mocha'
 
 {
   factorial
@@ -19,7 +18,7 @@ describe 'Redis notifier', ->
   before (done) ->
     factorialFinishedCounterObject.value = 0
     ivy.registerTask factorial, factorialFinished, name: 'factorial'
-    
+
     queue.clear -> notifier.clear done
 
   describe 'When I set up redis notifier for producer', ->
