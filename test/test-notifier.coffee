@@ -11,9 +11,12 @@ ivy         = require '../src'
 
 # internal
 {notifier}  = require '../src/notifiers'
+{queue}     = require '../src/queues'
 
 
 describe 'Notifiers', ->
+  before (done) ->
+    queue.clear -> notifier.clear done
 
   describe 'When set up notifier and pause it', ->
     before (done) ->
@@ -32,9 +35,11 @@ describe 'Notifiers', ->
     describe 'and I send in the task result', ->
 
       before (done) ->
-        notifier.sendTaskResult name: 'factorial', args: [null, 5], (err) ->
+        notifier.once 'taskResultSend', (err, options) ->
           # err would be 'cannot place result into notifier'
           done err
+
+        notifier.sendTaskResult name: 'factorial', args: [null, 5]
 
       it "I can see it in notifier's internal storage", ->
         notifier.getNotifications (err, content) ->

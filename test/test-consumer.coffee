@@ -19,9 +19,10 @@ describe 'Consuming queue', ->
     factorialFinishedCounter = 0
 
     before (done) ->
-      ivy.registerTask factorial, factorialFinished, name: 'factorial'
-      ivy.delayedCall factorial, 5, (err) ->
-        done err
+      queue.clear ->
+        ivy.registerTask factorial, factorialFinished, name: 'factorial'
+        ivy.delayedCall factorial, 5, (err) ->
+          done err
 
 
     describe 'and I configure consumer and wait for the task to complete', ->
@@ -29,8 +30,8 @@ describe 'Consuming queue', ->
       recievedResult = null
 
       before (done) ->
-        ivy.once 'taskExecuted', (err, task, result) ->
-          recievedTask   = task
+        ivy.once 'taskExecuted', (err, {name, result}) ->
+          recievedTask   = name
           recievedResult = result
           done err
 
@@ -58,6 +59,6 @@ describe 'Consuming queue', ->
 
       it 'There should be no task in queue', (done) ->
         queue.getScheduledTasks (err, queueTasks) ->
-          assert.equal 0, queueTasks?.length
+          assert.equal 0, (i for i of queueTasks).length
           done err
 

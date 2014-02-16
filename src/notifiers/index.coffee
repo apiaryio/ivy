@@ -1,3 +1,5 @@
+{EventEmitter}   = require 'events'
+
 {MemoryNotifier} = require './memory'
 
 # # Interface to notifiers
@@ -10,7 +12,7 @@
 # It would be nice to just use Proxy object, but Proxies are now available only with
 # --harmony-proxies flag and not in general use
 
-class NotificationManager
+class NotificationManager extends EventEmitter
   NOTIFIER_TYPES =
     memory: MemoryNotifier
 
@@ -23,11 +25,17 @@ class NotificationManager
       if not NOTIFIER_TYPES[name]
         throw new Error "Queue #{name} not available."
 
-      @notifier = new NOTIFIER_TYPES[name] options
+      @notifier = new NOTIFIER_TYPES[name] @, options
       @currentNotifierType = name
 
   setupMain: (@ivy) ->
     @notifier.setupMain @ivy
+
+    @ivy.on 'taskExecuted', (err, options) =>
+      # if err, task failed to execute; do not notify,
+      # it shall be retried later
+      if not err
+        @notifier.sendTaskResult.apply @notifier, [options]
 
   ###
   # Proxy attributes follow
@@ -44,6 +52,8 @@ class NotificationManager
   resume: ->
     @notifier.resume.apply @notifier, arguments
 
+  clear: ->
+    @notifier.clear.apply @notifier, arguments
 
   startProducer: (options, cb) ->
     if options.type

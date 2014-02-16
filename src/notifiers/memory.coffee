@@ -4,14 +4,12 @@
 # doesn't work or scale accross processes.
 # Yes, you need that even if you don't think so.
 
-{EventEmitter} = require 'events'
-
 {consumeTasks} = require '../listener'
 
 CONSUME_INTERVAL  = parseInt(process.env.MEMORY_NOTIFIER_CONSUME_INTERVAL) or 10
 
-class MemoryNotifier extends EventEmitter
-  constructor: ->
+class MemoryNotifier
+  constructor: (@manager, @options) ->
     @taskResults     = []
     @ivy             = null
     @paused          = false
@@ -21,8 +19,6 @@ class MemoryNotifier extends EventEmitter
 
     @producer        = false
     @consumer        = false
-
-    super("MemoryNotifier")
 
   setupMain: (@ivy) ->
 
@@ -51,6 +47,10 @@ class MemoryNotifier extends EventEmitter
 
     done null
 
+  clear: (cb) ->
+    @taskResults.length = 0
+    cb null
+
   startProducer: (options, cb) ->
     @paused   = false
     @producer = true
@@ -69,9 +69,9 @@ class MemoryNotifier extends EventEmitter
   getNotifications: (cb) ->
     cb null, @taskResults
 
-  sendTaskResult: ({name, options, args}, cb) ->
-    @taskResults.push JSON.stringify {name, options, args}
-    cb? null
+  sendTaskResult: ({id, name, options, args}) ->
+    @taskResults.push JSON.stringify {id, name, options, args}
+    @manager.emit 'taskResultSend', null, {id, name, options, args}
 
 module.exports = {
   MemoryNotifier

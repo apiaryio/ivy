@@ -4,56 +4,65 @@
 # doesn't work or scale accross processes.
 # Yes, you need that even if you don't think so.
 
-{EventEmitter} = require 'events'
+uuid              = require 'node-uuid'
 
-{consumeTasks} = require '../listener'
+CONSUME_INTERVAL  = parseInt(process.env.MEMORY_QUEUE_CONSUME_INTERVAL, 10) or 10
 
-CONSUME_INTERVAL  = parseInt(process.env.MEMORY_QUEUE_CONSUME_INTERVAL) or 10
-
-class MemoryQueue extends EventEmitter
-  constructor: ->
-    @tasks  = []
-    @paused = false
-    @ivy    = null
+class MemoryQueue
+  constructor: (@manager, @options)->
+    @tasks   = {}
+    @paused  = false
+    @ivy     = null
 
     @listening = false
     @consumeInterval = null
-
-    super("MemoryQueue")
 
   setupMain: (@ivy) ->
 
   pause: ->
     @paused = true
-    @pausedInterval = @consumeInterval
-    clearInterval(@consumeInterval) if @consumeInterval
+    clearInterval @consumeInterval if @consumeInterval
+    @consumeInterval = null
 
   resume: (options={}) ->
     @paused = false
-    @consumeInterval = setInterval (=> @consumeTasks), CONSUME_INTERVAL if @pausedInterval
+    @consumeInterval = setInterval (=> @consumeTasks() if @listening), CONSUME_INTERVAL unless @consumeInterval
     if options.immediatePush
       @consumeTasks()
+
+  clear: (done) ->
+    @tasks = {}
+    done null
 
   getScheduledTasks: (cb) ->
     cb null, @tasks
 
   sendTask: ({name, options, args}, cb) ->
-    @tasks.push {name, options, args}
-    cb? null
+    taskId = uuid.v4()
+    @tasks[taskId] = JSON.stringify {name, options, args}
+    cb? null, taskId
 
   consumeTasks: ->
-    if @tasks.length > 0
-      @emit 'tasks', @tasks
-      @tasks.length = 0
+    for taskId of @tasks
+      @manager.emit 'messageRetrieved', @tasks[taskId]
+      taskArgs = JSON.parse @tasks[taskId]
+
+      @manager.emit 'scheduledTaskRetrieved',
+        id:        taskId
+        name:      taskArgs.name
+        args:      taskArgs.args
+        options:   taskArgs.options
+
+  taskExecuted: (err, result) ->
+    delete @tasks[result.id] if result?.id
 
   listen: ->
-    @on 'tasks', consumeTasks unless @listening
     @listening = true
-    @consumeInterval = setInterval (=> @consumeTasks()), CONSUME_INTERVAL
+    @consumeInterval = setInterval (=> @consumeTasks() if @listening), CONSUME_INTERVAL unless @consumeInterval
 
   stopListening: ->
-    @removeListener 'tasks', consumeTasks
     clearInterval @consumeInterval
+    @consumeInterval = null
     @listening = false
 
 module.exports = {

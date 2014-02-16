@@ -13,8 +13,10 @@ ivy         = require '../src'
 
 describe 'Passing info through queue', ->
 
-  before ->
-    ivy.registerTask factorial, factorialFinished, name: 'factorial'
+  before (done) ->
+    queue.clear ->
+      ivy.registerTask factorial, factorialFinished, name: 'factorial'
+      done()
 
   describe 'When I call delayed async function on paused queue', ->
     before (done) ->
@@ -34,11 +36,11 @@ describe 'Passing info through queue', ->
 
           done err
 
-      it 'I should see task there', ->
-        assert.equal 1, tasks.length
+      it 'I should see a task there', ->
+        assert.equal 1, (i for i of tasks).length
 
       it 'I should see task scheduled for factorial', ->
-        assert.equal 'factorial', tasks[0].name
+        assert.equal 'factorial', JSON.parse((v for k,v of tasks)[0]).name
 
     describe 'and when I attach consumer', ->
       before ->
@@ -50,10 +52,14 @@ describe 'Passing info through queue', ->
 
 
       describe 'and resume queue', ->
-        before ->
+        before (done) ->
+          queue.once 'scheduledTaskRetrieved', ->
+            process.nextTick ->
+              done()
+
           queue.resume immediatePush: true
 
         it 'queue should be empty', (done) ->
           queue.getScheduledTasks (err, queueTasks) ->
-            assert.equal 0, queueTasks.length
+            assert.equal 0, (i for i of queueTasks).length
             done err

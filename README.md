@@ -108,6 +108,11 @@ Ivy touches the following workflow:
   * callback must be present
   * first argument of callback signature is either Error or null
 
+* Think about context change
+  * Last callback is about placing task in queue as opposed to having direct callback
+  * However, extracting to named function is needed 
+  * Multiple callbacks looks strange.
+
 * Explicit is better then implicit
   * In first version, use explicit task registrations
   * Leave continuation and function "backresolve" to v2
@@ -138,8 +143,11 @@ There are a lot of parts and components in distributed environment. This is how 
 * **Task**: Function to be invoked on `Consumer`. May be parametrized by `Message`'s content.
 * **Scheduled Task**: A way to describe intent of invoking `Task` at some point.
 * **Task status**: A state that describes current state of `Scheduled Task` or `Task`. May be `scheduled` (successfully placed in `Queue`, but not consumed by `Consumer` yet), `running` (processing on consumer), `errored` (some state failed), `successfull` (processing done on consumer and `Notifier` successfully notified) and `done` (`successfull` + `Producer` successfully notified).
-* **Task result**: Data "returned" by `Task` upon its completion with the intent of informing `Producer` about it. While the primary purpose might be computation task that produces an output that is stored in database, it is *not* considered `Task result` if it's not intended for `Producer`. 
-* **Task execution**: The act of running task on `Consumer`. 
+* **Task result**: Data "returned" by `Task` upon its completion with the intent of informing `Producer` about it. While the primary purpose might be computation task that produces an output that is stored in database, it is *not* considered `Task result` if it's not intended for `Producer`. Result is an array of arguments given to `Task`'s callback.
+* **Task execution**: The act of running task on `Consumer`.
+* **Task arguments**: Array of arguments for the `Task` *excluding* the last one (that *must* be callback. I.e. for function `factorial = (number, cb)`, the `arguments` are `[number]`, i.e. `[5]`.
+* **Sending task** is an act of creating `ScheduledTask` by serializing original `delayedCall` call into `Message` and putting it in `Queue`.
+* **Consuming tasks** is an act of retrieving `Messages` from `Queue` on `Consumer` done by `Listener`.
 * **Caller resume**: The act of resuming the workflow back on `Producer`, done by calling callback passed to original `delayedCall`.  
 * **Task resolved**: Task has been executed and `Producer` notified -- or there has been an error.
 * **Notifier**: Service/process designed to inform `Producer` about `Task status` and/or `Task result`. Might be same piece of software/service as `Queue`.
