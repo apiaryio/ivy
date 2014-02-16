@@ -5,9 +5,12 @@ if process.env.REDIS_URL
 else
   describe.skip 'Redis Test Suite', -> it 'Dummy it'
 
-if ironCreds = require '../iron.json'
-  process.env.IRONMQ_TOKEN      = ironCreds.token
-  process.env.IRONMQ_PROJECT_ID = ironCreds.project_id
+try
+  if ironCreds = require '../iron.json'
+    process.env.IRONMQ_TOKEN      = ironCreds.token
+    process.env.IRONMQ_PROJECT_ID = ironCreds.project_id
+catch err
+  # not loading credentials
 
 if process.env.IRONMQ_PROJECT_ID and process.env.IRONMQ_TOKEN
   require './integration/queues/ironmq'
