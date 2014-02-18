@@ -46,6 +46,13 @@ class Ivy extends EventEmitter
 
     @taskObjectRegistry[func] = name
 
+  ###
+  # Producer & Consumer testing: Clear tasks between tests
+  ###
+  clearTasks: ->
+    @taskRegistry       = {}
+    @taskObjectRegistry = {}
+
 
   ###
   # Consumer: Resolving tasks recieved from queue and calling them
@@ -58,9 +65,10 @@ class Ivy extends EventEmitter
         console.error "IVY_ERROR Task #{name} called callback multiple times. Is shouldn't do that."
       else
         called = true
+        notify = !!@taskRegistry[name].funcCb
         # last argument is the callback I am in
         args.pop()
-        @emit 'taskExecuted', err, {id, name, args, options, result}
+        @emit 'taskExecuted', err, {id, name, args, options, result, notify}
 
 
   executeTask: (name, args, cb) ->
@@ -136,8 +144,11 @@ class Ivy extends EventEmitter
   # Consumer: listening to queue events
   ###
 
-  listen: ->
-    queue.listen.apply queue, arguments
+  listen: (options, cb) ->
+    if typeof options is 'function'
+      cb    = options
+      options = {}
+    queue.listen.apply queue, [options, cb]
 
   stopListening: ->
     queue.stopListening.apply queue, arguments

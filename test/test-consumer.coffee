@@ -26,6 +26,8 @@ describe 'Consuming queue', ->
         ivy.delayedCall factorial, 5, (err) ->
           done err
 
+    after -> ivy.clearTasks()
+
 
     describe 'and I configure consumer and wait for the task to complete', ->
       recievedTask   = null

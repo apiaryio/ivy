@@ -23,6 +23,9 @@ describe 'IronMQ Queue Backend Test', ->
       ivy.registerTask factorial, factorialFinished, name: 'factorial'
       done()
 
+  after -> ivy.clearTasks()
+
+
   describe 'When I configure queue', ->
     before (done) ->
       ivy.setupQueue mqOptions, (err) ->

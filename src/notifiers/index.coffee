@@ -39,7 +39,7 @@ class NotificationManager extends EventEmitter
     @ivy.on 'taskExecuted', (err, options) =>
       # if err, task failed to execute; do not notify,
       # it shall be retried later
-      if not err
+      if not err and options.notify
         @notifier.sendTaskResult.apply @notifier, [options]
 
   ###

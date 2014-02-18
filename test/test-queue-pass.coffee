@@ -18,6 +18,8 @@ describe 'Passing info through queue', ->
       ivy.registerTask factorial, factorialFinished, name: 'factorial'
       done()
 
+  after -> ivy.clearTasks()
+
   describe 'When I call delayed async function on paused queue', ->
     before (done) ->
       queue.pause()

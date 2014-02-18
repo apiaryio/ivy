@@ -18,6 +18,9 @@ describe 'Notifiers', ->
   before (done) ->
     queue.clear -> notifier.clear done
 
+  after -> ivy.clearTasks()
+
+
   describe 'When set up notifier and pause it', ->
     before (done) ->
       factorialFinishedCounterObject.value = 0

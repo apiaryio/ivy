@@ -21,6 +21,9 @@ describe 'Redis notifier', ->
 
     queue.clear -> notifier.clear done
 
+  after -> ivy.clearTasks()
+
+
   describe 'When I set up redis notifier for producer', ->
     before (done) ->
       ivy.startNotificationProducer

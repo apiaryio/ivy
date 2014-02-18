@@ -1,5 +1,10 @@
 helpers = require './helpers'
 
+# non-conditional first
+require './integration/test-task-without-publisher-callback'
+
+
+
 if process.env.REDIS_URL
   require './integration/notifiers/redis'
 else

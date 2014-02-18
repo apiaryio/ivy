@@ -62,9 +62,10 @@ class MemoryQueue
   taskExecuted: (err, result) ->
     delete @tasks[result.id] if result?.id
 
-  listen: ->
+  listen: (options, cb) ->
     @listening = true
-    @consumeInterval = setInterval (=> @consumeTasks() if @listening), CONSUME_INTERVAL unless @consumeInterval
+    @consumeInterval = setInterval (=> @consumeTasks() if @listening), CONSUME_INTERVAL unless @consumeInterval 
+    cb? null
 
   stopListening: ->
     clearInterval @consumeInterval
