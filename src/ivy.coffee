@@ -125,15 +125,6 @@ class Ivy extends EventEmitter
     , (err) ->
       cb err
 
-  delayedCallSync: ->
-    fargs = Array.prototype.slice.call(arguments)
-    func  = fargs.slice 0, 1
-    args  = fargs.slice(1) or []
-    queue.sendTask
-      name:    @taskObjectRegistry[func]
-      options: @taskRegistry[@taskObjectRegistry[func]].options
-      args:    JSON.parse JSON.stringify args
-
   ###
   # Producer: Knowing where to queue tasks
   ###
