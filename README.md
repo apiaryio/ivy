@@ -90,14 +90,6 @@ elseif (process.env.NODE_ENV==='worker') {
 
 ```
 
-
-### Progress
-
-* [ ] Queuing a task to queue
-* [ ] Consuming queue task
-* [ ] Notifications back to caller
-* [ ] Continuation of original workflow
-
 ### Problem solved by Ivy
 
 Ivy touches the following workflow:
