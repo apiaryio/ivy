@@ -99,14 +99,15 @@ class IronMQQueue
         console.error "IVY_WARNING Cannot delete task #{result.id} from IronMQ", err
         @manager.emit 'mqError', err
 
-  listen: ->
-    @listening = true
+  listen: (options, cb) ->
+    @listening       = true
     @consumeInterval = setInterval (=> @consumeTasks() if @listening), CONSUME_INTERVAL unless @consumeInterval
+    cb? null
 
   stopListening: ->
     clearInterval @consumeInterval
+    @listening       = false
     @consumeInterval = null
-    @listening = false
 
 module.exports = {
   IronMQQueue

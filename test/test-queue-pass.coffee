@@ -1,14 +1,15 @@
-{assert}    = require 'chai'
+{assert}      = require 'chai'
 
 {
   factorial
   factorialFinished
-}           = require './helpers'
+}             = require './helpers'
 
-ivy         = require '../src'
+ivy           = require '../src'
 
 # internal
-{queue}     = require '../src/queues'
+{queue}       = require '../src/queues'
+{IronMQQueue} = require '../src/queues/ironmq'
 
 
 describe 'Passing info through queue', ->
@@ -65,3 +66,13 @@ describe 'Passing info through queue', ->
           queue.getScheduledTasks (err, queueTasks) ->
             assert.equal 0, (i for i of queueTasks).length
             done err
+
+describe 'Queue configuration', ->
+  describe 'When I listen to IronMQ queue', ->
+    before (done) ->
+      ivy.listen type: 'ironmq', (err) ->
+        done err
+
+    it 'Queue backend should be IronMQ', ->
+      assert.ok queue.queue instanceof IronMQQueue
+
