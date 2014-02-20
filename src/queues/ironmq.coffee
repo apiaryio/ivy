@@ -112,7 +112,7 @@ class IronMQQueue
           return next null
         else
           @setupQueue options, next
-    ], (err) ->
+    ], (err) =>
       @consumeInterval = setInterval (=> @consumeTasks() if @listening), CONSUME_INTERVAL unless @consumeInterval
       cb? err
 
