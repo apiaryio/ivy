@@ -94,5 +94,4 @@ describe 'Queue configuration', ->
           done null
 
       it 'I should not be able to listen', ->
-        console.error 'err is', error
         assert.ok error instanceof Error
