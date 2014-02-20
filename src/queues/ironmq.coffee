@@ -30,7 +30,7 @@ class IronMQQueue
 
     @queue    = @client.queue queueName
 
-    cb null
+    cb? null
 
 
   pause: ->
