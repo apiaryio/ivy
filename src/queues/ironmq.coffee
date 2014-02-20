@@ -2,7 +2,7 @@
 
 # Backend that utilizes [IronMQ](http://www.iron.io/mq) using
 # their [node.js library](https://github.com/iron-io/iron_mq_node)
-
+async  = require 'async'
 ironMQ = require 'iron_mq'
 
 CONSUME_INTERVAL  = parseInt(process.env.IRONMQ_CONSUME_INTERVAL, 10) or 1000
@@ -15,7 +15,8 @@ class IronMQQueue
     @ivy     = null
     @client  = null
 
-    @listening = false
+    @listening  = false
+    @configured = false
     @consumeInterval = null
 
   setupMain: (@ivy) ->
@@ -23,12 +24,16 @@ class IronMQQueue
   setupQueue: (@options, cb) ->
     queueName = @options.queueName or @manager.DEFAULT_QUEUE_NAME
 
+    if not @options.auth?.token or not @options.auth?.projectId
+      return cb new Error "Cannot listen to IronMQ without authentication"
+
     @client   = new ironMQ.Client
       token:      @options.auth.token
       project_id: @options.auth.projectId
       queue_name: queueName
 
     @queue    = @client.queue queueName
+    @configured = false
 
     cb? null
 
@@ -101,8 +106,15 @@ class IronMQQueue
 
   listen: (options, cb) ->
     @listening       = true
-    @consumeInterval = setInterval (=> @consumeTasks() if @listening), CONSUME_INTERVAL unless @consumeInterval
-    cb? null
+    async.series [
+      (next) =>
+        if @queue
+          return next null
+        else
+          @setupQueue options, next
+    ], (err) ->
+      @consumeInterval = setInterval (=> @consumeTasks() if @listening), CONSUME_INTERVAL unless @consumeInterval
+      cb? err
 
   stopListening: ->
     clearInterval @consumeInterval

@@ -68,11 +68,31 @@ describe 'Passing info through queue', ->
             done err
 
 describe 'Queue configuration', ->
-  describe 'When I listen to IronMQ queue', ->
-    before (done) ->
-      ivy.listen type: 'ironmq', (err) ->
-        done err
+  describe 'IronMQ', ->
+    describe 'When I listen to IronMQ queue', ->
+      before (done) ->
+        ivy.listen
+          type: 'ironmq'
+          auth:
+            token: 'dummy'
+            projectId: 'dummyId'
+        , done
 
-    it 'Queue backend should be IronMQ', ->
-      assert.ok queue.queue instanceof IronMQQueue
+      it 'Queue backend should be IronMQ', ->
+        assert.ok queue.queue instanceof IronMQQueue
 
+
+
+    describe 'When I try to listen to IronMQ queue without giving authentication', ->
+      error = undefined
+
+      before (done) ->
+        # Client is cached, clear it up
+        queue.queue.queue = null
+        ivy.listen type: 'ironmq', (err) ->
+          error = err
+          done null
+
+      it 'I should not be able to listen', ->
+        console.error 'err is', error
+        assert.ok error instanceof Error
