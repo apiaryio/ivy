@@ -19,8 +19,7 @@ describe 'Consuming queue', ->
     factorialFinishedCounter = 0
 
     before (done) ->
-      # ivy.setupQueue
-      #   type: 'memory'
+      if queue.currentQueue != 'memory' then queue.changeQueue 'memory'
       queue.clear ->
         ivy.registerTask factorial, factorialFinished, name: 'factorial'
         ivy.delayedCall factorial, 5, (err) ->
