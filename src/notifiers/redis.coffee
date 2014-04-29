@@ -7,6 +7,7 @@
 
 redis    = require 'redis'
 redutils = require '../redis-helpers'
+logger   = require '../logger'
 
 CONSUME_INTERVAL = parseInt(process.env.MEMORY_NOTIFIER_CONSUME_INTERVAL) or 10
 
@@ -61,7 +62,7 @@ class RedisPubSubNotifier
     @producerChannel = options.channel or process.env.IVY_NOTIFICATION_CHANNEL_NAME or @manager.DEFAULT_NOTIFICATION_CHANNEL_NAME
 
     if @consumerChannel and @producerChannel isnt @consumerChannel
-      console.error "IVY_WARNING Creating notification producer/pub client for channel #{@producerChannel}, but consumer channel is #{@consumerChannel}. Double-check that you want this."
+      logger.warn "IVY_WARNING Creating notification producer/pub client for channel #{@producerChannel}, but consumer channel is #{@consumerChannel}. Double-check that you want this."
 
     @pubClient.once 'ready', (err) ->
       cb err
@@ -71,7 +72,7 @@ class RedisPubSubNotifier
     @consumerChannel = options.channel or process.env.IVY_NOTIFICATION_CHANNEL_NAME or @manager.DEFAULT_NOTIFICATION_CHANNEL_NAME
 
     if @producerChannel and @producerChannel isnt @consumerChannel
-      console.error "IVY_WARNING Subsribing to notification consumer/sub channel #{@consumerChannel}, but producer/pub channel is #{@producerChannel}. Double-check that you want this."
+      logger.warn "IVY_WARNING Subsribing to notification consumer/sub channel #{@consumerChannel}, but producer/pub channel is #{@producerChannel}. Double-check that you want this."
 
     @subClient.once 'ready', (err) =>
       if err then return cb err
@@ -79,7 +80,7 @@ class RedisPubSubNotifier
       @subClient.once 'subscribe', (channelName, count) =>
         if channelName isnt @consumerChannel
           message = "IVY_REDIS_ERROR I've asked to subscribe to #{@consumerChannel}, but got into #{channelName} instead!"
-          console.error message
+          logger.error message
           return cb new Error channelName
         else
           cb null
