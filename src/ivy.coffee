@@ -37,6 +37,9 @@ class Ivy extends EventEmitter
 
     if not name
       throw new Error "Cannot determine task name. Please pass it explicitly through options."
+    else
+      delete options.name
+      delete options.body
 
     @taskRegistry[name] = {
       func
@@ -99,10 +102,9 @@ class Ivy extends EventEmitter
 
 
   resumeCaller: (name, args) ->
-    @taskRegistry[name].funcCb.apply @taskRegistry[name].funcCb, args    
+    @taskRegistry[name].funcCb.apply @taskRegistry[name].funcCb, args
 
-
-  ### 
+  ###
   # Producer: Main "start it all" API: Calling "delayed/remote" functions as if they were local
   ###
 
