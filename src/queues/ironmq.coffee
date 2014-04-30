@@ -62,6 +62,7 @@ class IronMQQueue
       cb err, scheduledTasks
 
   sendTask: ({name, options, args}, cb) ->
+    delete options.body
     options.body = JSON.stringify {name, options, args}
 
     @queue.post options, (err, taskId) ->
@@ -90,7 +91,7 @@ class IronMQQueue
             if err
               console.error "IVY_WARNING Cannot delete task from IronMQ", err
               @manager.emit 'mqError', err
-        
+
 
         @manager.emit 'scheduledTaskRetrieved',
           id:        ironTask.id
