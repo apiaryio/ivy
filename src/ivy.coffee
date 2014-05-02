@@ -39,7 +39,6 @@ class Ivy extends EventEmitter
       throw new Error "Cannot determine task name. Please pass it explicitly through options."
     else
       delete options.name
-      delete options.body
 
     @taskRegistry[name] = {
       func

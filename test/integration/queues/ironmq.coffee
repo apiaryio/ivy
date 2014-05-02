@@ -1,4 +1,5 @@
 {assert}    = require 'chai'
+sinon       = require 'sinon'
 
 {
   factorial
@@ -12,7 +13,7 @@ ivy         = require '../../../src'
 
 
 describe 'IronMQ Queue Backend Test', ->
-  mqOptions = 
+  mqOptions =
     type: 'ironmq'
     auth:
       token:      process.env.IRONMQ_TOKEN
@@ -72,3 +73,25 @@ describe 'IronMQ Queue Backend Test', ->
         queue.getScheduledTasks (err, queueTasks) ->
           assert.equal 0, (i for i of queueTasks).length
           done err
+
+  describe 'and try check call paramenters with spy', ->
+    ivySpy = undefined
+    queueSpy = undefined
+
+    before (done) ->
+      ivySpy = sinon.spy(ivy, 'delayedCall')
+      queueSpy = sinon.spy(queue, 'sendTask')
+
+      ivy.delayedCall factorial, 5, (err) ->
+        done err
+
+    it 'check arguments for delayedCall', ->
+      assert.equal 1, ivySpy.called
+      actual = JSON.stringify ivySpy.args
+      assert.equal actual, '[[null,5,null]]'
+
+    it 'check arguments for sendTask', ->
+      assert.equal 1, queueSpy.called
+      actual =  JSON.stringify queueSpy.args[0][0]
+      expected = '{"name":"factorial","options":{},"args":[5]}'
+      assert.equal actual, expected
