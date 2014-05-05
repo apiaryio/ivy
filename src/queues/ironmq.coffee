@@ -62,10 +62,9 @@ class IronMQQueue
       cb err, scheduledTasks
 
   sendTask: ({name, options, args}, cb) ->
-    delete options.body
-    options.body = JSON.stringify {name, options, args}
-
-    @queue.post options, (err, taskId) ->
+    message = {}
+    message.body = JSON.stringify {name, options, args}
+    @queue.post message, (err, taskId) ->
       cb err, taskId
 
   consumeTasks: ->
