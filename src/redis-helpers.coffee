@@ -3,6 +3,8 @@ url       = require 'url'
 async     = require 'async'
 redis     = require 'redis'
 
+logger    = require './logger'
+
 # Use dedicated single connection for ivy because of simplicity.
 # TODO: Allow a way to pass the connection from application
 REDIS_CONNECTIONS = {}
@@ -23,7 +25,7 @@ createClient = (name) ->
       wholeHost = options.host.split(':')
       options.host = wholeHost[0]
       if options.port and options.port isnt wholeHost[1]
-        console.error "Parsing error: url.parsed() port is #{options.port}, but hostname leftover is #{wholeHost[1]}", new Error()
+        logger.error "Parsing error: url.parsed() port is #{options.port}, but hostname leftover is #{wholeHost[1]}", new Error()
 
   # provide defaults
 
@@ -39,20 +41,20 @@ createClient = (name) ->
 
   # create client & return execute
   client = redis.createClient options.port or '6379', options.host or '127.0.0.1', options
-  if options.password then client.auth options.password, (err) -> if err then console.error 'Cannot authorize client', err #else console.log "Redis client authorized"
+  if options.password then client.auth options.password, (err) -> if err then logger.error 'Cannot authorize client', err #else logger.log "Redis client authorized"
 
-  client.on 'ready', -> # console.log 'Redis client ready, executing queued commands'
-  client.on 'end',   -> # console.log 'Redis connection closed'
+  client.on 'ready', -> # logger.log 'Redis client ready, executing queued commands'
+  client.on 'end',   -> # logger.log 'Redis connection closed'
 
   # This is somehow controversial, because it is basically similar to "empty except"
   # However, at the current state of affairs, application is still somehow usable,
   # so we just report it to nervous developers to hipchat & carry on
   # Also, as far as I can see, there is no way to associate errors with operations
   # except for creating an client *per "transaction"*, which I'd consider overkill,
-  # as handshake requires certain overhead (in terms of latency etc). 
+  # as handshake requires certain overhead (in terms of latency etc).
   # However, I have not measured it and it might be an option for us in the future.
   client.on 'error', (err) ->
-    console.error "Redis client emmited error: ", err
+    logger.error "Redis client emmited error: ", err
 
   REDIS_CONNECTIONS[name] = client
   client.name = name

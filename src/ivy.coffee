@@ -1,5 +1,5 @@
 {EventEmitter} = require 'events'
-
+{logger}       = require './logger'
 {queue}        = require './queues'
 {notifier}     = require './notifiers'
 
@@ -36,6 +36,7 @@ class Ivy extends EventEmitter
       name = func.name
 
     if not name
+      logger.error "Cannot determine task name. Please pass it explicitly through options."
       throw new Error "Cannot determine task name. Please pass it explicitly through options."
     else
       delete options.name
@@ -64,7 +65,7 @@ class Ivy extends EventEmitter
     called = false
     @executeTask name, args, (err, result...) =>
       if called
-        console.error "IVY_ERROR Task #{name} called callback multiple times. Is shouldn't do that."
+        logger.error "IVY_ERROR Task #{name} called callback multiple times. Is shouldn't do that."
       else
         called = true
         notify = !!@taskRegistry[name].funcCb
@@ -81,7 +82,7 @@ class Ivy extends EventEmitter
         args.push cb
         @taskRegistry[name].func.apply @taskRegistry[name].func, args
       catch err
-        console.error "IVY_ERROR Ivy task #{name} has thrown an exception. It should call back instead", err
+        logger.error "IVY_ERROR Ivy task #{name} has thrown an exception. It should call back instead", err
         cb err
 
   ###
@@ -93,7 +94,7 @@ class Ivy extends EventEmitter
     try
       result = JSON.parse data
     catch err
-      console.error 'IVY_BAD_ARGUMENTS Recieved JSON unparseable function description. Error is: ', err
+      logger.error 'IVY_BAD_ARGUMENTS Recieved JSON unparseable function description. Error is: ', err
       return false
 
     @resumeCaller result.name, result.args

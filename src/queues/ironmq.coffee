@@ -5,6 +5,8 @@
 async  = require 'async'
 ironMQ = require 'iron_mq'
 
+logger = require '../logger'
+
 CONSUME_INTERVAL  = parseInt(process.env.IRONMQ_CONSUME_INTERVAL, 10) or 1000
 
 
@@ -64,6 +66,7 @@ class IronMQQueue
   sendTask: ({name, options, args}, cb) ->
     message = {}
     message.body = JSON.stringify {name, options, args}
+    logger.debug 'ironmq sendTask message:', message    
     @queue.post message, (err, taskId) ->
       cb err, taskId
 
@@ -71,7 +74,7 @@ class IronMQQueue
     toRetrieve = @options.messageSize or 1
     @queue.get n: toRetrieve, (err, ironTasks) =>
       if err
-        console.error "IVY_WARNING Cannot retrieve task from IronMQ", err
+        logger.warn "IVY_WARNING Cannot retrieve task from IronMQ", err
         @manager.emit 'mqError', err if err
         return
 
@@ -84,11 +87,11 @@ class IronMQQueue
         try
           taskArgs = JSON.parse ironTask.body
         catch e
-          console.error 'ironTask is', ironTask
-          console.error "IVY_IRONMQ_ERROR Retrieve tasks that cannot be parsed as JSON, deleting from queue: #{ironTask}", e
+          logger.error 'ironTask is', ironTask
+          logger.error "IVY_IRONMQ_ERROR Retrieve tasks that cannot be parsed as JSON, deleting from queue: #{ironTask}", e
           @queue.del ironTask.id, (err, body) =>
             if err
-              console.error "IVY_WARNING Cannot delete task from IronMQ", err
+              logger.warn "IVY_WARNING Cannot delete task from IronMQ", err
               @manager.emit 'mqError', err
 
 
@@ -101,7 +104,7 @@ class IronMQQueue
   taskExecuted: (err, result) ->
     @queue.del result.id, (err, body) =>
       if err
-        console.error "IVY_WARNING Cannot delete task #{result.id} from IronMQ", err
+        logger.warn "IVY_WARNING Cannot delete task #{result.id} from IronMQ", err
         @manager.emit 'mqError', err
 
   listen: (options, cb) ->

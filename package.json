@@ -14,7 +14,8 @@
     "node-uuid": "~1.4.1",
     "redis": "~0.10.0",
     "hiredis": "~0.1.16",
-    "iron_mq": "~0.2.1"
+    "iron_mq": "~0.2.1",
+    "winston": "~0.7.3"
   },
   "devDependencies": {
     "coffee-script": "~1.7.1",
