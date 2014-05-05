@@ -26,9 +26,21 @@ factorialSync = (num) ->
 factorialFinished = (err) ->
   factorialFinishedCounterObject.value += 1
 
+sendObjectFinishedCounterObject = {
+  value: 0
+}
+
+sendObject = ({message}, cb) ->
+  cb null
+
+sendObjectFinished = (err) ->
+  sendObjectFinishedCounterObject.value += 1
 
 module.exports = {
   factorial
   factorialFinished
   factorialFinishedCounterObject
+  sendObject
+  sendObjectFinished
+  sendObjectFinishedCounterObject
 }

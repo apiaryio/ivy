@@ -8,7 +8,7 @@ ironMQ = require 'iron_mq'
 logger = require '../logger'
 
 CONSUME_INTERVAL  = parseInt(process.env.IRONMQ_CONSUME_INTERVAL, 10) or 1000
-
+IRONMQ_LIMIT = 65536
 
 class IronMQQueue
   constructor: (@manager, @options)->
@@ -66,7 +66,9 @@ class IronMQQueue
   sendTask: ({name, options, args}, cb) ->
     message = {}
     message.body = JSON.stringify {name, options, args}
-    logger.debug 'ironmq sendTask message:', message    
+    if (JSON.stringify message).length > IRONMQ_LIMIT
+      logger.warn "IronMQ message exceeed limit #{IRONMQ_LIMIT} - name:", name
+    logger.debug 'ironmq sendTask message:', message
     @queue.post message, (err, taskId) ->
       cb err, taskId
 
