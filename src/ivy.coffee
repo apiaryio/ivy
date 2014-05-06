@@ -1,5 +1,5 @@
 {EventEmitter} = require 'events'
-{logger}       = require './logger'
+logger       = require './logger'
 {queue}        = require './queues'
 {notifier}     = require './notifiers'
 
