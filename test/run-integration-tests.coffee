@@ -3,7 +3,8 @@ helpers = require './helpers'
 # non-conditional first
 require './integration/test-task-without-publisher-callback'
 
-
+if process.env.IRONMQ_CONSUME_INTERVAL
+  console.error "Warning: you have set IRONMQ_CONSUME_INTERVAL to #{process.env.IRONMQ_CONSUME_INTERVAL} some test can't work."
 
 if process.env.REDIS_URL
   require './integration/notifiers/redis'
