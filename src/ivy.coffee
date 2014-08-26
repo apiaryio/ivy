@@ -31,6 +31,9 @@ class Ivy extends EventEmitter
       options = funcCb
       funcCb  = null
 
+    if typeof func isnt 'function'
+      throw new Error "First parameter 'func' isn't function is #{func}"
+
     {name} = options
     if not name
       name = func.name
