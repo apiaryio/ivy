@@ -20,6 +20,7 @@ describe 'IronMQ Queue Backend Test', ->
     auth:
       token:      process.env.IRONMQ_TOKEN
       projectId:  process.env.IRONMQ_PROJECT_ID
+    encryptionKey: 'XXXX'
 
   before (done) ->
     queue.clear ->
@@ -51,7 +52,6 @@ describe 'IronMQ Queue Backend Test', ->
         before (done) ->
           queue.getScheduledTasks (err, queueTasks) ->
             tasks = queueTasks
-
             done err
 
         it 'I should see a task there', ->

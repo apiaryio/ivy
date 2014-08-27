@@ -158,3 +158,18 @@ There are a lot of parts and components in distributed environment. This is how 
 * **Notifier**: Service/process designed to inform `Producer` about `Task status` and/or `Task result`. Might be same piece of software/service as `Queue`.
 * **Notification channel**: Uniquely-named "queue" used to pass `Task result`s from *any* `Consumer` to *particular* `Producer`. 
 * **Notifier backend**: Particular piece of software implementing `Notifier`'s role, i.e. `IronMQ`, `Redis`, ...
+
+### Encryption support for IronMQ
+
+If you can encrypt all messages for better security add encryptionKey as password. We use `aes-256-cbc` algorithm for encrypt and decrypt messages.
+
+  ivy.setupQueue({
+      queue: 'testpackage',
+
+      type: 'ironmq',
+      auth: {
+          token:      process.env.IRONMQ_TOKEN      || 'dummy',
+          project_id: process.env.IRONMQ_PROJECT_ID || 'testpackage'
+      },
+      encryptionKey:  process.env.MESSAGES_ENCRYPTION_KEY
+  });

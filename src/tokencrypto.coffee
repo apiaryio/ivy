@@ -10,21 +10,14 @@ SELECTED_ALGORITHM   = 'aes-256-cbc'
 
 # Heroku's environment size restriction prevents us from using long passwords.
 # Thus, derive a hash from it and use it as password
-ENCRYPTION_PASSWORD  = crypto.createHash('sha512').update(process.env.MESSAGES_ENCRYPTION_KEY).digest('binary')
 
 ENCRYPTION_DELIMITER = '$'
 
-getEncrypted = (message, cb) ->
-  # For backward compatibility, store algorithm alongside encrypted message
-  # Inspired by django, use $algorithm$message format
-  # $ at the beginning is added to easily find whether message was already encrypted
-  if not ENCRYPTION_PASSWORD or (process.env.NODE_ENV is 'production' and process.env.MESSAGES_ENCRYPTION_KEY is 'xxx')
-    return cb new Error 'No message encryption key!'
-
+getEncrypted = (message, password, cb) ->
   encryptedMessage = ''
 
   try
-    cipher = crypto.createCipher SELECTED_ALGORITHM, ENCRYPTION_PASSWORD
+    cipher = crypto.createCipher SELECTED_ALGORITHM, crypto.createHash('sha512').update(password).digest('binary')
     encryptedMessage += cipher.update message, 'utf-8', 'base64'
     encryptedMessage += cipher.final 'base64'
     # Might be thrown on bad input or when openssl is not compiled with SELECTED_ALGORITHM
@@ -34,7 +27,7 @@ getEncrypted = (message, cb) ->
   cb null, (ENCRYPTION_DELIMITER + SELECTED_ALGORITHM + ENCRYPTION_DELIMITER + encryptedMessage)
 
 
-getDecrypted = (encryptedMessage, cb) ->
+getDecrypted = (encryptedMessage, password, cb) ->
   try
     [_, cipher, rawEncToken] = encryptedMessage.split '$', 3
 
@@ -43,7 +36,7 @@ getDecrypted = (encryptedMessage, cb) ->
 
     decText = ''
 
-    decipher = crypto.createDecipher cipher, ENCRYPTION_PASSWORD
+    decipher = crypto.createDecipher cipher, crypto.createHash('sha512').update(password).digest('binary')
     decText += decipher.update rawEncToken, 'base64'
 
     decText += decipher.final 'utf-8'
