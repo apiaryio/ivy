@@ -2,10 +2,11 @@
 
 # Backend that utilizes [IronMQ](http://www.iron.io/mq) using
 # their [node.js library](https://github.com/iron-io/iron_mq_node)
-async  = require 'async'
-ironMQ = require 'iron_mq'
+async    = require 'async'
+ironMQ   = require 'iron_mq'
 
-logger = require '../logger'
+logger   = require '../logger'
+security = require '../security'
 
 CONSUME_INTERVAL  = parseInt(process.env.IRONMQ_CONSUME_INTERVAL, 10) or 1000
 IRONMQ_LIMIT = 65536
@@ -60,17 +61,21 @@ class IronMQQueue
       scheduledTasks = {}
       if body
         for t in body
-          scheduledTasks[t.id] = JSON.parse t.body
+          security.getDecrypted t.body, (err, encryptedBody) =>
+            scheduledTasks[t.id] = JSON.parse encryptedBody
       cb err, scheduledTasks
 
   sendTask: ({name, options, args}, cb) ->
     message = {}
-    message.body = JSON.stringify {name, options, args}
-    if (JSON.stringify message).length > IRONMQ_LIMIT
-      logger.warn "IronMQ message exceeed limit #{IRONMQ_LIMIT} - name:", name
-    logger.debug 'ironmq sendTask message:', message
-    @queue.post message, (err, taskId) ->
-      cb err, taskId
+    body = JSON.stringify {name, options, args}
+    security.getEncrypted body, (err, encryptedBody) =>
+      if err then cb err
+      message.body = encryptedBody
+      if (JSON.stringify message).length > IRONMQ_LIMIT
+        logger.warn "IronMQ message exceeed limit #{IRONMQ_LIMIT} - name:", name
+      logger.debug 'ironmq sendTask message:', message
+      @queue.post message, (err, taskId) ->
+        cb err, taskId
 
   consumeTasks: ->
     toRetrieve = @options.messageSize or 1
@@ -86,22 +91,22 @@ class IronMQQueue
       for ironTask in ironTasks or []
         @manager.emit 'messageRetrieved', ironTasks
 
-        try
-          taskArgs = JSON.parse ironTask.body
-        catch e
-          logger.error 'ironTask is', ironTask
-          logger.error "IVY_IRONMQ_ERROR Retrieve tasks that cannot be parsed as JSON, deleting from queue: #{ironTask}", e
-          @queue.del ironTask.id, (err, body) =>
-            if err
-              logger.warn "IVY_WARNING Cannot delete task from IronMQ", err
-              @manager.emit 'mqError', err
+        security.getDecrypted ironTask.body, (err, message) =>
+          try
+            taskArgs = JSON.parse message
+          catch e
+            logger.error 'ironTask is', ironTask
+            logger.error "IVY_IRONMQ_ERROR Retrieve tasks that cannot be parsed as JSON, deleting from queue: #{ironTask}", e
+            @queue.del ironTask.id, (err, body) =>
+              if err
+                logger.warn "IVY_WARNING Cannot delete task from IronMQ", err
+                @manager.emit 'mqError', err
 
-
-        @manager.emit 'scheduledTaskRetrieved',
-          id:        ironTask.id
-          name:      taskArgs.name
-          args:      taskArgs.args
-          options:   taskArgs.options
+          @manager.emit 'scheduledTaskRetrieved',
+            id:        ironTask.id
+            name:      taskArgs.name
+            args:      taskArgs.args
+            options:   taskArgs.options
 
   taskExecuted: (err, result) ->
     @queue.del result.id, (err, body) =>

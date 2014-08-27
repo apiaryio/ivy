@@ -11,3 +11,6 @@ module.exports = {
   config
   QUEUE_CLASS_MAPPING
 }
+
+
+process.env.MESSAGES_ENCRYPTION_KEY ?= ''

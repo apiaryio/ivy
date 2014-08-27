@@ -36,31 +36,21 @@ getEncrypted = (message, cb) ->
 
 getDecrypted = (encryptedMessage, cb) ->
   try
-    decrypted = getDecryptedSync encryptedMessage
+    [_, cipher, rawEncToken] = encryptedMessage.split '$', 3
+
+    if cipher is not SELECTED_ALGORITHM
+      log.warn "Using message encrypted using #{cipher} instead of current #{SELECTED_ALGORITHM}"
+
+    decText = ''
+
+    decipher = crypto.createDecipher cipher, ENCRYPTION_PASSWORD
+    decText += decipher.update rawEncToken, 'base64'
+
+    decText += decipher.final 'utf-8'
+    return cb null, decText
   # Might be thrown on bad input or when openssl is not compiled with SELECTED_ALGORITHM
   catch err
     return cb err
-
-  cb null, decrypted
-
-# Use getDecrypted instead!!!
-# This is only for legacy code. It might get removed without notice,
-# as acync magic may occur in the future (i.e. C-based async encryption libraries)
-getDecryptedSync = (encryptedMessage) ->
-  [_, cipher, rawEncToken] = encryptedMessage.split '$', 3
-
-  if cipher is not SELECTED_ALGORITHM
-    log.warn "Using message encrypted using #{cipher} instead of current #{SELECTED_ALGORITHM}"
-
-  decText = ''
-
-  decipher = crypto.createDecipher cipher, ENCRYPTION_PASSWORD
-  decText += decipher.update rawEncToken, 'base64'
-
-  decText += decipher.final 'utf-8'
-
-  return decText
-
 
 isEncrypted = (message) ->
   '$' is message.slice 0, 1
@@ -75,7 +65,6 @@ getMessage = (message, cb) ->
 module.exports = {
   getEncrypted
   getDecrypted
-  getDecryptedSync
   getMessage
   isEncrypted
   SELECTED_ALGORITHM

@@ -64,7 +64,7 @@ class MemoryQueue
 
   listen: (options, cb) ->
     @listening = true
-    @consumeInterval = setInterval (=> @consumeTasks() if @listening), CONSUME_INTERVAL unless @consumeInterval 
+    @consumeInterval = setInterval (=> @consumeTasks() if @listening), CONSUME_INTERVAL unless @consumeInterval
     cb? null
 
   stopListening: ->
