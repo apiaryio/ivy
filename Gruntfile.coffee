@@ -16,7 +16,6 @@ module.exports = (grunt) ->
         createTag: true
         tagName: "ivy-%VERSION%"
         push: true
-        pushTo: "upstream"
         gitDescribeOptions: "--tags --always --abbrev=1 --dirty=-d"
 
   grunt.registerTask 'default', ['exec:tests']
