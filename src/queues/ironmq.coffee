@@ -85,7 +85,9 @@ class IronMQQueue
 
   postTask: (name, message, cb) ->
     if (JSON.stringify message).length > IRONMQ_LIMIT
-      logger.warn "IronMQ message exceeed limit #{IRONMQ_LIMIT} - name:", name
+      errorMessage = "IronMQ message exceeed limit #{IRONMQ_LIMIT} - name: #{name}"
+      logger.error errorMessage
+      cb new Error errorMessage
     logger.debug 'ironmq sendTask message:', message
     @queue.post message, (err, taskId) ->
       cb err, taskId
