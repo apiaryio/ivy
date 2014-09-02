@@ -173,3 +173,19 @@ If you can encrypt all messages for better security add encryptionKey as passwor
       },
       encryptionKey:  process.env.MESSAGES_ENCRYPTION_KEY
   });
+
+## Development
+
+## Install grunt
+
+    npm -g install grunt-cli
+
+## Run tests
+
+    grunt
+
+## Release new version using [grunt-bump](https://github.com/vojtajina/grunt-bump)
+
+    grunt bump
+    grunt bump:minor
+    grunt bump:major
