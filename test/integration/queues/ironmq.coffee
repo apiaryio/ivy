@@ -122,5 +122,5 @@ describe 'IronMQ Queue Backend Test', ->
 
     it 'check error with limit for sendTask', (done) ->
       ivy.delayedCall sendObject, { message: message}, (err) ->
-        assert.equal err, "Error: Message must be no more than 64kB"
+        assert.equal err, "Error: IronMQ message exceeed limit 65536 - name: sendObject"
         done()
