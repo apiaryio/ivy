@@ -189,3 +189,7 @@ If you can encrypt all messages for better security add encryptionKey as passwor
     grunt bump
     grunt bump:minor
     grunt bump:major
+
+and
+
+    npm publish
