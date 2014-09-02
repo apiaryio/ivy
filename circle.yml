@@ -1,9 +1,6 @@
 dependencies:
   pre:
     - npm install -g grunt-cli
-  override:
-    - npm install --dev:
-      timeout: 300
 
 test:
   override:
