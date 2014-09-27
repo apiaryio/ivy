@@ -163,16 +163,16 @@ There are a lot of parts and components in distributed environment. This is how 
 
 If you can encrypt all messages for better security add encryptionKey as password. We use `aes-256-cbc` algorithm for encrypt and decrypt messages.
 
-  ivy.setupQueue({
-      queue: 'testpackage',
+    ivy.setupQueue({
+        queue: 'testpackage',
 
-      type: 'ironmq',
-      auth: {
-          token:      process.env.IRONMQ_TOKEN      || 'dummy',
-          project_id: process.env.IRONMQ_PROJECT_ID || 'testpackage'
-      },
-      encryptionKey:  process.env.MESSAGES_ENCRYPTION_KEY
-  });
+        type: 'ironmq',
+        auth: {
+            token:      process.env.IRONMQ_TOKEN      || 'dummy',
+            project_id: process.env.IRONMQ_PROJECT_ID || 'testpackage'
+        },
+        encryptionKey:  process.env.MESSAGES_ENCRYPTION_KEY
+    });
 
 ## Development
 
