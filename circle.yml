@@ -1,5 +1,6 @@
 dependencies:
   pre:
+    - npm install npm@1.4.4
     - npm install -g grunt-cli
 
 test:
