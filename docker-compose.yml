@@ -1,0 +1,26 @@
+data:
+  image: busybox
+  volumes:
+     - /tmp/ivydata/ironmq:/ironmq/db
+     - /tmp/data/redis:/data/
+ironmq:
+  image: iron/mq
+  ports:
+    - "8080:8080"
+  volumes_from:
+    - data
+ironauth:
+  image: iron/auth
+  ports:
+    - "8090:8090"
+  volumes_from:
+    - data
+ivy:
+  hostname: ivy.dev
+  build: .
+  links:
+    - ironmq
+    - ironauth
+  volumes:
+    - test/:/home/ubuntu/app/test
+  command: npm test
