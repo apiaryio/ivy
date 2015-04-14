@@ -1,3 +1,4 @@
+
 {EventEmitter} = require 'events'
 logger       = require './logger'
 {queue}        = require './queues'
@@ -69,17 +70,17 @@ class Ivy extends EventEmitter
   # Consumer: Resolving tasks recieved from queue and calling them
   ###
 
-  scheduledTaskRetrieved: ({id, name, args, options}) ->
+  scheduledTaskRetrieved: ({id, name, args, options, queue}) ->
     called = false
     @executeTask name, args, (err, result...) =>
       if called
-        logger.error "IVY_ERROR Task #{name} called callback multiple times. Is shouldn't do that."
+        logger.error "IVY_ERROR Task #{name} called callback multiple times. It shouldn't do that."
       else
         called = true
         notify = !!@taskRegistry[name].funcCb
         # last argument is the callback I am in
         args.pop()
-        @emit 'taskExecuted', err, {id, name, args, options, result, notify}
+        @emit 'taskExecuted', err, {id, name, args, options, result, notify, queue}
 
 
   executeTask: (name, args, cb) ->

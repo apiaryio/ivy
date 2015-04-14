@@ -12,7 +12,8 @@
 # Document only idiosyncracies of particular implementations in backend classes
 #
 # It would be nice to just use Proxy object, but Proxies are now available only with
-# --harmony-proxies flag and not in general use
+# --harmony-proxies flag and not in general use (yet).
+# TODO: Fix as part of ES6 migration
 #
 # Queue Manager emits:
 # * `messageRetrieved`, {message}

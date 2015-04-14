@@ -22,6 +22,11 @@ class MemoryQueue
   setupQueue: (@options, cb) ->
     cb null
 
+  getQueueName: (name) ->
+    name          ?= @manager.DEFAULT_QUEUE_NAME
+    @tasks[name]  ?= {}
+    return name
+
   pause: ->
     @paused = true
     clearInterval @consumeInterval if @consumeInterval
@@ -35,37 +40,48 @@ class MemoryQueue
 
   clear: (queues, done) ->
     if typeof queues is 'function'
-      done     = queues
+      done = queues
+      @tasks = {}
     else
-      done new Error "Multiple queues not supported by memory backend yet :("
+      for queue in queues
+        @tasks[queue] = {}
 
-    @tasks = {}
     done null
 
-  getScheduledTasks: (cb) ->
+  getScheduledTasks: (options, cb) ->
+    if typeof options is 'function'
+      cb = options
+      options = {}
+
     tasks = {}
-    for k, v of @tasks
+    for k, v of @tasks[@getQueueName(options.queue)]
       tasks[k] = JSON.parse v
+
     cb null, tasks
 
-  sendTask: ({name, options, args}, cb) ->
+  sendTask: ({name, options, args, queue}, cb) ->
     taskId = uuid.v4()
-    @tasks[taskId] = JSON.stringify {name, options, args}
+    @tasks[@getQueueName(queue)][taskId] = JSON.stringify {name, options, args}
     cb? null, taskId
 
-  consumeTasks: ->
-    for taskId of @tasks
-      @manager.emit 'messageRetrieved', @tasks[taskId]
-      taskArgs = JSON.parse @tasks[taskId]
+  consumeTasks: (queueName) ->
+    queueName = @getQueueName(queueName)
+    for taskId of @tasks[queueName]
+      task = @tasks[queueName][taskId]
+      
+      @manager.emit 'messageRetrieved', task
+      
+      taskArgs = JSON.parse task
 
       @manager.emit 'scheduledTaskRetrieved',
         id:        taskId
         name:      taskArgs.name
         args:      taskArgs.args
         options:   taskArgs.options
+        queue:     queueName
 
   taskExecuted: (err, result) ->
-    delete @tasks[result.id] if result?.id
+    delete @tasks[result.queue][result.id] if result?.id
 
   listen: (options, cb) ->
     @listening = true
