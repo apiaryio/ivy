@@ -44,7 +44,7 @@ class Ivy extends EventEmitter
     else
       delete options.name
 
-    {queueName} = options
+    queueName = options.queue
     if queueName
       delete options.queue
 

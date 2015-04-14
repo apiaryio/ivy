@@ -33,7 +33,12 @@ class MemoryQueue
     if options.immediatePush
       @consumeTasks()
 
-  clear: (done) ->
+  clear: (queues, done) ->
+    if typeof queues is 'function'
+      done     = queues
+    else
+      done new Error "Multiple queues not supported by memory backend yet :("
+
     @tasks = {}
     done null
 

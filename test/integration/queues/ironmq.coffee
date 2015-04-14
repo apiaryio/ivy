@@ -23,7 +23,7 @@ describe 'IronMQ Queue Backend Test', ->
     encryptionKey: 'XXXX'
 
   before (done) ->
-    queue.clear ->
+    queue.clear ['ivy', 'objectSendingQueue'], ->
       ivy.registerTask factorial, factorialFinished, name: 'factorial'
       ivy.registerTask sendObject, sendObjectFinished,
         name: 'sendObject'
@@ -38,7 +38,7 @@ describe 'IronMQ Queue Backend Test', ->
     before (done) ->
       ivy.setupQueue mqOptions, (err) ->
         if err then return err
-        queue.clear (err) ->
+        queue.clear ['ivy', 'objectSendingQueue'], (err) ->
           # err means queue does not exists and that's OK
           done null
 
@@ -75,10 +75,33 @@ describe 'IronMQ Queue Backend Test', ->
           assert.equal 0, (i for i of tasks).length
 
 
-    # describe 'and when I send task to a different queue', ->
-    #   tasks = undefined
+    describe 'and when I send task to objectSendingQueue queue', ->
+      
+      before (done) ->
+        ivy.delayedCall sendObject, {message: 'xoxo'}, (err) -> done err
 
-    #   before (done)
+      describe 'and inspect the objectSendingQueue', ->
+        tasks = undefined
+
+        before (done) ->
+          queue.getScheduledTasks queue: 'objectSendingQueue', (err, queueTasks) ->
+            tasks = queueTasks
+            done err
+
+        it 'there should be single task', ->
+          assert.equal 1, (i for i of tasks).length
+
+      describe 'and when I inspect the default queue', ->
+        tasks = undefined
+
+        before (done) ->
+          queue.getScheduledTasks (err, queueTasks) ->
+            tasks = queueTasks
+            done err
+
+        it 'I should still see only one task there', ->
+          assert.equal 1, (i for i of tasks).length
+
 
     describe 'and when I attach consumer', ->
       before (done) ->
