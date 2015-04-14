@@ -66,13 +66,11 @@ class IronMQQueue
       @consumeTasks()
 
   clear: (queues, cb) ->
-    console.error 'queues is', queues
     if typeof queues is 'function'
       cb     = queues
       queues = (name for name, q of @queues)
 
     async.forEach queues, (name, done) =>
-      console.error 'clearing', name
       @getQueue(name).del_queue (err, body) ->
         done err
     , (err) ->
