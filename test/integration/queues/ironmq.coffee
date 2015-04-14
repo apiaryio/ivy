@@ -25,7 +25,10 @@ describe 'IronMQ Queue Backend Test', ->
   before (done) ->
     queue.clear ->
       ivy.registerTask factorial, factorialFinished, name: 'factorial'
-      ivy.registerTask sendObject, sendObjectFinished, name: 'sendObject'
+      ivy.registerTask sendObject, sendObjectFinished,
+        name: 'sendObject'
+        queue: 'objectSendingQueue'
+
       done()
 
   after -> ivy.clearTasks()
@@ -46,7 +49,7 @@ describe 'IronMQ Queue Backend Test', ->
         ivy.delayedCall factorial, 5, (err) ->
           done err
 
-      describe 'and inspect the queue', ->
+      describe 'and inspect the default queue', ->
         tasks = undefined
 
         before (done) ->
@@ -59,6 +62,23 @@ describe 'IronMQ Queue Backend Test', ->
 
         it 'I should see task scheduled for factorial', ->
           assert.equal 'factorial', (v for k,v of tasks)[0].name
+
+      describe 'and inspect the objectSendingQueue', ->
+        tasks = undefined
+
+        before (done) ->
+          queue.getScheduledTasks queue: 'objectSendingQueue', (err, queueTasks) ->
+            tasks = queueTasks
+            done err
+
+        it 'there should be no task', ->
+          assert.equal 0, (i for i of tasks).length
+
+
+    # describe 'and when I send task to a different queue', ->
+    #   tasks = undefined
+
+    #   before (done)
 
     describe 'and when I attach consumer', ->
       before (done) ->

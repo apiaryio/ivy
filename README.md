@@ -41,13 +41,12 @@ ivy.registerTask(factorial, finished, {
 if (process.env.NODE_ENV==='producer') {
 
   ivy.setupQueue({
-      queue: 'testpackage',
-
       type: 'ironmq',
       auth: {
           token:      process.env.IRONMQ_TOKEN      || 'dummy',
           project_id: process.env.IRONMQ_PROJECT_ID || 'testpackage'
       }
+      //, queue: 'testpackage' // optional, inferred from task
   });
 
 

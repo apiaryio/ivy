@@ -44,10 +44,15 @@ class Ivy extends EventEmitter
     else
       delete options.name
 
+    {queueName} = options
+    if queueName
+      delete options.queue
+
     @taskRegistry[name] = {
       func
       funcCb
       options
+      queue: queueName
     }
 
     @taskObjectRegistry[func] = name
@@ -134,6 +139,7 @@ class Ivy extends EventEmitter
     queue.sendTask
       name:    @taskObjectRegistry[func]
       options: @taskRegistry[@taskObjectRegistry[func]].options
+      queue:   @taskRegistry[@taskObjectRegistry[func]].queue
       args:    args
     , (err) ->
       cb err
