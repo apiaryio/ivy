@@ -90,7 +90,7 @@ class MemoryQueue
   listen: (mqOptions, queues, cb) ->
     if typeof queues is 'function'
       cb = queues
-      queues = [@getQueueName()]
+      queues = [@getQueueName(mqOptions.queueName)]
 
     @listening = true
     @consumeInterval = setInterval (=> @consumeTasks(queues) if @listening), CONSUME_INTERVAL unless @consumeInterval
