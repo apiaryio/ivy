@@ -145,7 +145,7 @@ class Ivy extends EventEmitter
     name = @taskObjectRegistry[func]
     queueName = @taskRegistry[@taskObjectRegistry[func]].queue
 
-    logger.silly "Sending delayedCall for function #{name} into queue #{queue} to backend #{queue.BACKEND_NAME} with args", args
+    logger.silly "Sending delayedCall for function #{name} into queue #{queueName} to backend #{queue.currentQueue} with args", args
 
     queue.sendTask
       name:    name
