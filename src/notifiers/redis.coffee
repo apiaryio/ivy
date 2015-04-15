@@ -96,15 +96,15 @@ class RedisPubSubNotifier
   getNotifications: (cb) ->
     cb null, @taskResults
 
-  sendTaskResult: ({id, name, options, args}) ->
-    message = JSON.stringify {id, name, options, args}
+  sendTaskResult: (options) ->
+    message = JSON.stringify options
 
     if @paused
       @taskResults.push message
     else
       @pubClient.publish @producerChannel, message
 
-    @manager.emit 'taskResultSend', null, {id, name, options, args}
+    @manager.emit 'taskResultSend', null, options
 
 module.exports = {
   RedisPubSubNotifier

@@ -15,7 +15,7 @@ ivy           = require '../src'
 describe 'Passing info through queue', ->
 
   before (done) ->
-    queue.clear ->
+    queue.setupQueue type: 'memory', -> queue.clear ->
       ivy.registerTask factorial, factorialFinished, name: 'factorial'
       done()
 

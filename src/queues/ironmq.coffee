@@ -17,11 +17,12 @@ class IronMQQueue
     @paused  = false
     @ivy     = null
     @client  = null
+    @queues  = {}
 
-    @listening  = false
-    @encryption = false
-    @encryptionKey = ''
-    @configured = false
+    @listening       = false
+    @encryption      = false
+    @encryptionKey   = ''
+    @configured      = false
     @consumeInterval = null
 
   setupMain: (@ivy) ->
@@ -41,11 +42,19 @@ class IronMQQueue
       project_id: @options.auth.projectId
       queue_name: queueName
 
-    @queue    = @client.queue queueName
+    #FIXME: @defaultQueue
+    @queues[queueName] ?= @queue
+
     @configured = false
 
     cb? null
 
+  getQueueName: (name) ->
+    name or @manager.DEFAULT_QUEUE_NAME
+
+  getQueue: (name) ->
+    @queues[name] ?= @client.queue @getQueueName name
+    return @queues[name]
 
   pause: ->
     @paused = true
@@ -58,12 +67,23 @@ class IronMQQueue
     if options.immediatePush
       @consumeTasks()
 
-  clear: (cb) ->
-    @queue.del_queue (err, body) ->
+  clear: (queues, cb) ->
+    if typeof queues is 'function'
+      cb     = queues
+      queues = (name for name, q of @queues)
+
+    async.forEach queues, (name, done) =>
+      @getQueue(name).del_queue (err, body) ->
+        done err
+    , (err) ->
       cb err
 
-  getScheduledTasks: (cb) ->
-    @queue.peek n: 100, (err, body) =>
+  getScheduledTasks: (options, cb) ->
+    if typeof options is 'function'
+      cb = options
+      options = {}
+
+    @getQueue(options.queue).peek n: 100, (err, body) =>
       scheduledTasks = {}
       if body
         for t in body
@@ -83,34 +103,35 @@ class IronMQQueue
               logger.error "IVY_IRONMQ_ERROR Can't parse body in getScheduledTasks", e
       cb err, scheduledTasks
 
-  postTask: (name, message, cb) ->
+  postTask: (queueName, name, message, cb) ->
     if (JSON.stringify message).length > IRONMQ_LIMIT
       errorMessage = "IronMQ message exceeed limit #{IRONMQ_LIMIT} - name: #{name}"
       logger.error errorMessage
       cb new Error errorMessage
-    logger.debug 'ironmq sendTask message:', message
-    @queue.post message, (err, taskId) ->
+    logger.debug "ironmq queue #{queueName} sendTask message:", message
+    @getQueue(queueName).post message, (err, taskId) ->
       cb err, taskId
 
-  sendTask: ({name, options, args}, cb) ->
+  sendTask: ({name, options, queue, args}, cb) ->
     message = {}
+    queueName = queue
     body = JSON.stringify {name, options, args}
     if @encryption
       tokencrypto.getEncrypted body, @encryptionKey, (err, encryptedBody) =>
         if err then return cb err
         message.body = encryptedBody
-        @postTask name, message, cb
+        @postTask queueName, name, message, cb
     else
       message.body = body
-      @postTask name, message, cb
+      @postTask queueName, name, message, cb
 
-  emitConsumeTask: (message, ironTask) ->
+  emitConsumeTask: (message, queue, ironTask) ->
     try
       taskArgs = JSON.parse message
     catch e
       logger.error 'ironTask is', ironTask
       logger.error "IVY_IRONMQ_ERROR Retrieve tasks that cannot be parsed as JSON, deleting from queue: #{ironTask}", e
-      @queue.del ironTask.id, (err, body) =>
+      @getQueue().del ironTask.id, (err, body) =>
         if err
           logger.warn "IVY_WARNING Cannot delete task from IronMQ", err
           @manager.emit 'mqError', err
@@ -120,10 +141,17 @@ class IronMQQueue
       name:      taskArgs.name
       args:      taskArgs.args
       options:   taskArgs.options
+      queue:     queue
 
-  consumeTasks: ->
+  consumeTasks: (queues) ->
     toRetrieve = @options.messageSize or 1
-    @queue.get n: toRetrieve, (err, ironTasks) =>
+
+    if queues?.length > 1
+      throw new Error "Multiple queues on a single listener not supported yet. Next release."
+
+    queueName = @getQueueName queues?[0]
+
+    @getQueue(queueName).get n: toRetrieve, (err, ironTasks) =>
       if err
         logger.warn "IVY_WARNING Cannot retrieve task from IronMQ", err
         @manager.emit 'mqError', err if err
@@ -133,7 +161,7 @@ class IronMQQueue
         ironTasks = [ironTasks]
 
       for ironTask in ironTasks or []
-        @manager.emit 'messageRetrieved', ironTasks
+        @manager.emit 'messageRetrieved', queueName, ironTasks
 
         message = ''
         if @encryption
@@ -143,27 +171,31 @@ class IronMQQueue
               @manager.emit 'mqError', err
 
             message = descryptedBody
-            @emitConsumeTask message, ironTask
+            @emitConsumeTask message, queueName, ironTask
         else
           message = ironTask.body
-          @emitConsumeTask message, ironTask
+          @emitConsumeTask message, queueName, ironTask
 
   taskExecuted: (err, result) ->
-    @queue.del result.id, (err, body) =>
+    @getQueue(result.queue).del result.id, (err, body) =>
       if err
         logger.warn "IVY_WARNING Cannot delete task #{result.id} from IronMQ", err
         @manager.emit 'mqError', err
 
-  listen: (options, cb) ->
-    @listening       = true
+  listen: (mqOptions, queues, cb) ->
+    if typeof queues is 'function'
+      cb = queues
+      queues = [@getQueueName()]
+
+    @listening = true
     async.series [
       (next) =>
         if @queue
           return next null
         else
-          @setupQueue options, next
+          @setupQueue mqOptions, next
     ], (err) =>
-      @consumeInterval = setInterval (=> @consumeTasks() if @listening), CONSUME_INTERVAL unless @consumeInterval
+      @consumeInterval = setInterval (=> @consumeTasks(queues) if @listening), CONSUME_INTERVAL unless @consumeInterval
       cb? err
 
   stopListening: ->

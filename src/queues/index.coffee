@@ -12,14 +12,15 @@
 # Document only idiosyncracies of particular implementations in backend classes
 #
 # It would be nice to just use Proxy object, but Proxies are now available only with
-# --harmony-proxies flag and not in general use
+# --harmony-proxies flag and not in general use (yet).
+# TODO: Fix as part of ES6 migration
 #
 # Queue Manager emits:
-# * `messageRetrieved`, {message}
-# * `scheduledTaskRetrieved`, {id, name, args, options}
+# * `messageRetrieved`, queue, {message}
+# * `scheduledTaskRetrieved`, {id, name, args, options, queue}
 #
 # Queue Manager listens to event on @ivy:
-# * `taskExecuted` err, {id, name, args, options, result}
+# * `taskExecuted` err, {id, name, args, options, result, queue}
 #   * ...and dispatches it as method call to backend
 
 

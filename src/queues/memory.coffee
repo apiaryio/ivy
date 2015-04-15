@@ -22,6 +22,11 @@ class MemoryQueue
   setupQueue: (@options, cb) ->
     cb null
 
+  getQueueName: (name) ->
+    name          ?= @manager.DEFAULT_QUEUE_NAME
+    @tasks[name]  ?= {}
+    return name
+
   pause: ->
     @paused = true
     clearInterval @consumeInterval if @consumeInterval
@@ -33,38 +38,62 @@ class MemoryQueue
     if options.immediatePush
       @consumeTasks()
 
-  clear: (done) ->
-    @tasks = {}
+  clear: (queues, done) ->
+    if typeof queues is 'function'
+      done = queues
+      @tasks = {}
+    else
+      for queue in queues
+        @tasks[queue] = {}
+
     done null
 
-  getScheduledTasks: (cb) ->
+  getScheduledTasks: (options, cb) ->
+    if typeof options is 'function'
+      cb = options
+      options = {}
+
     tasks = {}
-    for k, v of @tasks
+    for k, v of @tasks[@getQueueName(options.queue)]
       tasks[k] = JSON.parse v
+
     cb null, tasks
 
-  sendTask: ({name, options, args}, cb) ->
+  sendTask: ({name, options, args, queue}, cb) ->
     taskId = uuid.v4()
-    @tasks[taskId] = JSON.stringify {name, options, args}
+    @tasks[@getQueueName(queue)][taskId] = JSON.stringify {name, options, args}
     cb? null, taskId
 
-  consumeTasks: ->
-    for taskId of @tasks
-      @manager.emit 'messageRetrieved', @tasks[taskId]
-      taskArgs = JSON.parse @tasks[taskId]
+  consumeTasks: (queues) ->
+    if queues?.length > 1
+      throw new Error "Multiple queues on a single listener not supported yet. Next release."
+
+    queueName = @getQueueName(queues?[0])
+
+    for taskId of @tasks[queueName]
+      task = @tasks[queueName][taskId]
+      
+      @manager.emit 'messageRetrieved', queueName, task
+      
+      taskArgs = JSON.parse task
 
       @manager.emit 'scheduledTaskRetrieved',
         id:        taskId
         name:      taskArgs.name
         args:      taskArgs.args
         options:   taskArgs.options
+        queue:     queueName
 
   taskExecuted: (err, result) ->
-    delete @tasks[result.id] if result?.id
+    delete @tasks[result.queue][result.id] if result?.id
 
-  listen: (options, cb) ->
+  listen: (mqOptions, queues, cb) ->
+    if typeof queues is 'function'
+      cb = queues
+      queues = [@getQueueName()]
+
     @listening = true
-    @consumeInterval = setInterval (=> @consumeTasks() if @listening), CONSUME_INTERVAL unless @consumeInterval
+    @consumeInterval = setInterval (=> @consumeTasks(queues) if @listening), CONSUME_INTERVAL unless @consumeInterval
     cb? null
 
   stopListening: ->

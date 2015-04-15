@@ -67,9 +67,9 @@ class MemoryNotifier
   getNotifications: (cb) ->
     cb null, @taskResults
 
-  sendTaskResult: ({id, name, options, args}) ->
-    @taskResults.push JSON.stringify {id, name, options, args}
-    @manager.emit 'taskResultSend', null, {id, name, options, args}
+  sendTaskResult: (options) ->
+    @taskResults.push JSON.stringify options
+    @manager.emit 'taskResultSend', null, options
 
 module.exports = {
   MemoryNotifier
