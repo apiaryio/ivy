@@ -9,6 +9,7 @@ uuid              = require 'node-uuid'
 CONSUME_INTERVAL  = parseInt(process.env.MEMORY_QUEUE_CONSUME_INTERVAL, 10) or 10
 
 class MemoryQueue
+  BACKEND_NAME = 'memory'
   constructor: (@manager, @options)->
     @tasks   = {}
     @paused  = false

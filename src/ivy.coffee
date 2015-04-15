@@ -1,6 +1,6 @@
 
 {EventEmitter} = require 'events'
-logger       = require './logger'
+logger         = require './logger'
 {queue}        = require './queues'
 {notifier}     = require './notifiers'
 
@@ -58,6 +58,8 @@ class Ivy extends EventEmitter
 
     @taskObjectRegistry[func] = name
 
+    logger.silly "Registered task #{name} into queue #{queueName}"
+
   ###
   # Producer & Consumer testing: Clear tasks between tests
   ###
@@ -72,6 +74,7 @@ class Ivy extends EventEmitter
 
   scheduledTaskRetrieved: ({id, name, args, options, queue}) ->
     called = false
+    logger.silly "Retrieved task id #{id}"
     @executeTask name, args, (err, result...) =>
       if called
         logger.error "IVY_ERROR Task #{name} called callback multiple times. It shouldn't do that."
@@ -87,6 +90,7 @@ class Ivy extends EventEmitter
     if not @taskRegistry[name]
       cb new Error "Task #{name} not found in registry on consumer"
     else
+      logger.silly "Executing task #{name}"
       try
         args.push cb
         @taskRegistry[name].func.apply @taskRegistry[name].func, args
@@ -138,10 +142,15 @@ class Ivy extends EventEmitter
     catch err
       return cb err
 
+    name = @taskObjectRegistry[func]
+    queueName = @taskRegistry[@taskObjectRegistry[func]].queue
+
+    logger.silly "Sending delayedCall for function #{name} into queue #{queue} to backend #{queue.BACKEND_NAME} with args", args
+
     queue.sendTask
-      name:    @taskObjectRegistry[func]
+      name:    name
       options: @taskRegistry[@taskObjectRegistry[func]].options
-      queue:   @taskRegistry[@taskObjectRegistry[func]].queue
+      queue:   queueName
       args:    args
     , (err) ->
       cb err
@@ -161,9 +170,13 @@ class Ivy extends EventEmitter
     if typeof options is 'function'
       cb    = options
       options = {}
+
+    logger.silly "Starting to listen to queue #{queue.BACKEND_NAME}, options", options
+
     queue.listen.apply queue, [options, cb]
 
   stopListening: ->
+    logger.silly "Stopping queue listener"
     queue.stopListening.apply queue, arguments
 
   ###

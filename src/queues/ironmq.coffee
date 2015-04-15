@@ -12,6 +12,8 @@ CONSUME_INTERVAL  = parseInt(process.env.IRONMQ_CONSUME_INTERVAL, 10) or 1000
 IRONMQ_LIMIT = 65536
 
 class IronMQQueue
+  BACKEND_NAME = 'ironmq'
+
   constructor: (@manager, @options)->
     @tasks   = {}
     @paused  = false
