@@ -112,6 +112,7 @@ class Ivy extends EventEmitter
 
   resumeCaller: (name, args) ->
     @taskRegistry[name].funcCb.apply @taskRegistry[name].funcCb, args
+    @emit 'callerResumed', name, args
 
   ###
   # Producer: Main "start it all" API: Calling "delayed/remote" functions as if they were local

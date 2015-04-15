@@ -16,10 +16,11 @@ ivy         = require '../../../src'
 
 describe 'Redis notifier', ->
   before (done) ->
-    factorialFinishedCounterObject.value = 0
-    ivy.registerTask factorial, factorialFinished, name: 'factorial'
+    ivy.setupQueue type: 'memory', ->
+      factorialFinishedCounterObject.value = 0
+      ivy.registerTask factorial, factorialFinished, name: 'factorial'
 
-    queue.clear -> notifier.clear done
+      queue.clear -> notifier.clear done
 
   after -> ivy.clearTasks()
 
@@ -45,8 +46,8 @@ describe 'Redis notifier', ->
 
       describe 'and send in the event and wait for it', ->
         before (done) ->
-          notifier.once 'taskResultSend', (err, options) ->
-            done err
+          ivy.once 'callerResumed', (name, args) ->
+            done null
 
           notifier.sendTaskResult name: 'factorial', args: [null, 5]
 
