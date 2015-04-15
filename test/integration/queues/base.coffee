@@ -94,7 +94,7 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
             assert.equal 1, (i for i of tasks).length
 
 
-      describe 'and when I attach consumer', ->
+      describe 'and when I attach consumer to the default queue', ->
         before (done) ->
           queue.once 'scheduledTaskRetrieved', ->
             process.nextTick ->
@@ -106,13 +106,37 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
         after ->
           ivy.stopListening()
 
-        it 'queue should be empty', (done) ->
+        it 'default queue should be empty', (done) ->
           queue.getScheduledTasks (err, queueTasks) ->
             assert.equal 0, (i for i of queueTasks).length
             done err
 
+        it 'objectSendingQueue should still contain one task', (done) ->
+          queue.getScheduledTasks queue: 'objectSendingQueue', (err, queueTasks) ->
+            assert.equal 1, (i for i of queueTasks).length
+            done err
+
+
+      describe 'and when I attach consumer to the objectSendingQueue queue', ->
+        before (done) ->
+          queue.once 'scheduledTaskRetrieved', ->
+            process.nextTick ->
+              done null
+
+          ivy.listen mqOptions, ['objectSendingQueue'], (err) ->
+            if err then done err
+
+        after ->
+          ivy.stopListening()
+
+        it 'default queue should be empty', (done) ->
+          queue.getScheduledTasks (err, queueTasks) ->
+            assert.equal 0, (i for i of queueTasks).length
+            done err
+
+
     describe 'and try check call parameters with spy', ->
-      ivySpy = undefined
+      ivySpy   = undefined
       queueSpy = undefined
 
       before (done) ->

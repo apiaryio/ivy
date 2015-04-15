@@ -16,11 +16,11 @@
 # TODO: Fix as part of ES6 migration
 #
 # Queue Manager emits:
-# * `messageRetrieved`, {message}
-# * `scheduledTaskRetrieved`, {id, name, args, options}
+# * `messageRetrieved`, queue, {message}
+# * `scheduledTaskRetrieved`, {id, name, args, options, queue}
 #
 # Queue Manager listens to event on @ivy:
-# * `taskExecuted` err, {id, name, args, options, result}
+# * `taskExecuted` err, {id, name, args, options, result, queue}
 #   * ...and dispatches it as method call to backend
 
 
