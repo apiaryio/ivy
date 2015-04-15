@@ -185,7 +185,7 @@ class IronMQQueue
   listen: (mqOptions, queues, cb) ->
     if typeof queues is 'function'
       cb = queues
-      queues = [@getQueueName()]
+      queues = [@getQueueName(mqOptions.queueName)]
 
     @listening = true
     async.series [
