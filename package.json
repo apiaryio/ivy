@@ -15,7 +15,7 @@
     "iron_mq": "~0.2.1",
     "node-uuid": "~1.4.1",
     "redis": "~0.10.0",
-    "winston": "~0.7.3"
+    "winston": "~0.9.0"
   },
   "devDependencies": {
     "chai": "~1.9.0",
