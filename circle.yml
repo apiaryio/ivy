@@ -1,7 +1,5 @@
 dependencies:
   pre:
-    - npm --version
-    - npm install -g npm@~1.4.6
     - npm install -g grunt-cli
 
 test:
@@ -10,4 +8,4 @@ test:
 
 machine:
   node:
-    version: v0.8.26
+    version: v0.10.40
