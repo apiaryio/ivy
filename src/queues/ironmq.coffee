@@ -9,7 +9,7 @@ logger      = require '../logger'
 tokencrypto = require '../tokencrypto'
 
 CONSUME_INTERVAL  = parseInt(process.env.IRONMQ_CONSUME_INTERVAL, 10) or 1000
-IRONMQ_LIMIT = 65536
+IRONMQ_LIMIT = parseInt(process.env.IRONMQ_LIMIT, 10) or 65536
 
 class IronMQQueue
   BACKEND_NAME = 'ironmq'
