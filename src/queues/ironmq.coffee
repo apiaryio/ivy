@@ -80,36 +80,45 @@ class IronMQQueue
     , (err) ->
       cb err
 
+  parseEncryptedTask: (scheduledTasks, task, cb) ->
+    unless task?
+      return cb()
+
+    if tokencrypto.isEncrypted(task.body)
+      tokencrypto.getDecrypted task.body, @encryptionKey, (err, decryptedBody) ->
+        if decryptedBody
+          try
+            scheduledTasks[task.id] = JSON.parse decryptedBody
+          catch e
+            logger.error "IVY_IRONMQ_ERROR Can't JSON.parse decryptedBody in parseEncryptedTask", e
+        else
+          return cb new Error "IVY_IRONMQ_ERROR Missing encryptionKey"
+        cb()
+    else
+      try
+        scheduledTasks[task.id] = JSON.parse task.body
+      catch e
+        logger.error "IVY_IRONMQ_ERROR Can't JSON.parse body in parseEncryptedTask", e
+      cb()
+
   getScheduledTasks: (options, cb) ->
     if typeof options is 'function'
       cb = options
       options = {}
 
-    @getQueue(options.queue).peek n: 100, (err, body) =>
+    @getQueue(options.queue).peek n: 100, (err, tasksFromQueue) =>
       scheduledTasks = {}
-      if body
-        for t in body
-          if tokencrypto.isEncrypted t.body
-            tokencrypto.getDecrypted t.body, @encryptionKey, (err, encryptedBody) ->
-              if encryptedBody
-                try
-                  scheduledTasks[t.id] = JSON.parse encryptedBody
-                catch e
-                  logger.error "IVY_IRONMQ_ERROR Can't parse encryptedBody in getScheduledTasks", e
-              else
-                cb new Error "IVY_IRONMQ_ERROR Missing encryptionKey"
-          else
-            try
-              scheduledTasks[t.id] = JSON.parse t.body
-            catch e
-              logger.error "IVY_IRONMQ_ERROR Can't parse body in getScheduledTasks", e
-      cb err, scheduledTasks
+      unless tasksFromQueue?.length
+        return cb(null, scheduledTasks)
+
+      async.each tasksFromQueue, @parseEncryptedTask.bind(@, scheduledTasks), (err) ->
+        cb(err, scheduledTasks)
 
   postTask: (queueName, name, message, cb) ->
     if (JSON.stringify message).length > IRONMQ_LIMIT
       errorMessage = "IronMQ message exceeed limit #{IRONMQ_LIMIT} - name: #{name}"
       logger.error errorMessage
-      cb new Error errorMessage
+      return cb new Error errorMessage
     logger.debug "ironmq queue #{queueName} sendTask message:", message
     @getQueue(queueName).post message, (err, taskId) ->
       cb err, taskId
