@@ -20,9 +20,10 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
     before (done) ->
       queue.clear ['ivy', 'objectSendingQueue'], ->
         ivy.registerTask factorial, factorialFinished, name: 'factorial'
-        ivy.registerTask sendObject, sendObjectFinished,
+        ivy.registerTask sendObject, sendObjectFinished, {
           name: 'sendObject'
           queue: 'objectSendingQueue'
+        }
 
         done()
 
