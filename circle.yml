@@ -8,4 +8,4 @@ test:
 
 machine:
   node:
-    version: v0.10.40
+    version: v0.10.42
