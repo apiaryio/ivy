@@ -1,11 +1,12 @@
+machine:
+  node:
+    version: v0.10.42
+
 dependencies:
   pre:
+    - npm install -g npm@latest-2
     - npm install -g grunt-cli
 
 test:
   override:
     - grunt
-
-machine:
-  node:
-    version: v0.10.42
