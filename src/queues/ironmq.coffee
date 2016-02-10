@@ -9,6 +9,7 @@ logger      = require '../logger'
 tokencrypto = require '../tokencrypto'
 
 CONSUME_INTERVAL  = parseInt(process.env.IRONMQ_CONSUME_INTERVAL, 10) or 1000
+RESERVE_TIMEOUT = parseInt(process.env.IRONMQ_RESERVE_TIMEOUT, 10) or 10000
 IRONMQ_LIMIT = parseInt(process.env.IRONMQ_LIMIT, 10) or 65536
 
 class IronMQQueue
@@ -106,7 +107,7 @@ class IronMQQueue
       cb = options
       options = {}
 
-    @getQueue(options.queue).peek n: 100, (err, tasksFromQueue) =>
+    @getQueue(options.queue).peek_n n: 100, (err, tasksFromQueue) =>
       scheduledTasks = {}
       unless tasksFromQueue?.length
         return cb(null, scheduledTasks)
@@ -139,20 +140,23 @@ class IronMQQueue
   emitConsumeTask: (message, queue, ironTask) ->
     try
       taskArgs = JSON.parse message
+      taskArgs.options.reservation_id = ironTask.reservation_id
     catch e
       logger.error 'ironTask is', ironTask
       logger.error "IVY_IRONMQ_ERROR Retrieve tasks that cannot be parsed as JSON, deleting from queue: #{ironTask}", e
-      @getQueue().del ironTask.id, (err, body) =>
-        if err
-          logger.warn "IVY_WARNING Cannot delete task from IronMQ", err
-          @manager.emit 'mqError', err
+      logger.warn "IRONTASK", ironTask
+      if ironTask.id
+        @getQueue().del ironTask.id, { reservation_id: taskArgs.options.reservation_id}, (err, body) =>
+          if err
+            logger.warn "IVY_WARNING Cannot delete task from IronMQ 1", err
+            @manager.emit 'mqError', err
 
     @manager.emit 'scheduledTaskRetrieved',
-      id:        ironTask.id
-      name:      taskArgs.name
-      args:      taskArgs.args
-      options:   taskArgs.options
-      queue:     queue
+      id:             ironTask.id
+      name:           taskArgs.name
+      args:           taskArgs.args
+      options:        taskArgs.options
+      queue:          queue
 
   consumeTasks: (queues) ->
     toRetrieve = @options.messageSize or 1
@@ -162,7 +166,7 @@ class IronMQQueue
 
     queueName = @getQueueName queues?[0]
 
-    @getQueue(queueName).get n: toRetrieve, (err, ironTasks) =>
+    @getQueue(queueName).reserve { n: toRetrieve, timeout: RESERVE_TIMEOUT}, (err, ironTasks) =>
       if err
         logger.warn "IVY_WARNING Cannot retrieve task from IronMQ", err
         @manager.emit 'mqError', err if err
@@ -188,7 +192,7 @@ class IronMQQueue
           @emitConsumeTask message, queueName, ironTask
 
   taskExecuted: (err, result) ->
-    @getQueue(result.queue).del result.id, (err, body) =>
+    @getQueue(result.queue).del result.id, { reservation_id: result.options.reservation_id }, (err, body) =>
       if err
         logger.warn "IVY_WARNING Cannot delete task #{result.id} from IronMQ", err
         @manager.emit 'mqError', err
