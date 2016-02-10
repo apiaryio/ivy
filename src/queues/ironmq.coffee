@@ -87,6 +87,8 @@ class IronMQQueue
 
     @getQueue(options.queue).peek n: 100, (err, body) =>
       scheduledTasks = {}
+      unless body
+        cb()
       if body
         for t in body
           if tokencrypto.isEncrypted t.body
@@ -103,7 +105,7 @@ class IronMQQueue
               scheduledTasks[t.id] = JSON.parse t.body
             catch e
               logger.error "IVY_IRONMQ_ERROR Can't parse body in getScheduledTasks", e
-      cb err, scheduledTasks
+        cb err, scheduledTasks
 
   postTask: (queueName, name, message, cb) ->
     if (JSON.stringify message).length > IRONMQ_LIMIT

@@ -45,6 +45,7 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
 
           before (done) ->
             queue.getScheduledTasks (err, queueTasks) ->
+              if err then logger.error err
               tasks = queueTasks
               done err
 
@@ -59,6 +60,7 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
 
           before (done) ->
             queue.getScheduledTasks queue: 'objectSendingQueue', (err, queueTasks) ->
+              if err then logger.error err
               tasks = queueTasks
               done err
 
@@ -67,7 +69,7 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
 
 
       describe 'and when I send task to objectSendingQueue queue', ->
-        
+
         before (done) ->
           ivy.delayedCall sendObject, {message: 'xoxo'}, (err) -> done err
 
@@ -87,6 +89,7 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
 
           before (done) ->
             queue.getScheduledTasks (err, queueTasks) ->
+              if err then logger.error err
               tasks = queueTasks
               done err
 
@@ -108,6 +111,7 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
 
         it 'default queue should be empty', (done) ->
           queue.getScheduledTasks (err, queueTasks) ->
+            if err then logger.error err
             assert.equal 0, (i for i of queueTasks).length
             done err
 
