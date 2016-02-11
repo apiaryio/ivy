@@ -39,7 +39,7 @@ class MemoryNotifier
       options = {}
 
     @paused = false
-    @consumeInterval = setInterval (=> @consumeTasks()), CONSUME_INTERVAL if @pausedInterval
+    @consumeInterval = setInterval((=> @consumeTasks()), CONSUME_INTERVAL) if @pausedInterval
     if options.immediate
       @consumeTasks()
 
@@ -58,7 +58,7 @@ class MemoryNotifier
     @paused   = false
     @consumer = true
 
-    @consumeInterval = setInterval (=> @consumeTasks()), CONSUME_INTERVAL unless @consumeInterval
+    @consumeInterval = setInterval((=> @consumeTasks()), CONSUME_INTERVAL) unless @consumeInterval
     if options.immediate
       @consumeTasks()
 

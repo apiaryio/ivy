@@ -19,13 +19,16 @@ describe 'Consuming queue', ->
     factorialFinishedCounter = 0
 
     before (done) ->
-      if queue.currentQueue != 'memory' then queue.changeQueue 'memory'
+      if queue.currentQueueType != 'memory' then queue.changeQueue 'memory'
       queue.clear ->
         ivy.registerTask factorial, factorialFinished, name: 'factorial'
         ivy.delayedCall factorial, 5, (err) ->
           done err
 
-    after -> ivy.clearTasks()
+    after (done) ->
+      ivy.clearTasks()
+      queue.clear (err) ->
+        done(err)
 
 
     describe 'and I configure consumer and wait for the task to complete', ->

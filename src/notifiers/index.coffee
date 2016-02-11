@@ -23,13 +23,13 @@ class NotificationManager extends EventEmitter
     @DEFAULT_NOTIFICATION_CHANNEL_NAME = 'ivy-notifier'
     @changeNotifier 'memory'
 
-  changeNotifier: (name, options={}) ->
-    unless @currentNotifierType is name
-      if not NOTIFIER_TYPES[name]
-        throw new Error "Queue #{name} not available."
+  changeNotifier: (notifierType, options={}) ->
+    unless @currentNotifierType is notifierType
+      if not NOTIFIER_TYPES[notifierType]
+        throw new Error "Queue #{notifierType} not available."
 
-      @notifier = new NOTIFIER_TYPES[name] @, options
-      @currentNotifierType = name
+      @notifier = new NOTIFIER_TYPES[notifierType] @, options
+      @currentNotifierType = notifierType
 
       @notifier.setupMain @ivy if @ivy
 

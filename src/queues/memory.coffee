@@ -9,7 +9,8 @@ uuid              = require 'node-uuid'
 CONSUME_INTERVAL  = parseInt(process.env.MEMORY_QUEUE_CONSUME_INTERVAL, 10) or 10
 
 class MemoryQueue
-  BACKEND_NAME = 'memory'
+  BACKEND_NAME: 'memory'
+
   constructor: (@manager, @options)->
     @tasks   = {}
     @paused  = false
@@ -35,17 +36,17 @@ class MemoryQueue
 
   resume: (options={}) ->
     @paused = false
-    @consumeInterval = setInterval (=> @consumeTasks() if @listening), CONSUME_INTERVAL unless @consumeInterval
+    @consumeInterval = setInterval((=> @consumeTasks() if @listening), CONSUME_INTERVAL) unless @consumeInterval
     if options.immediatePush
       @consumeTasks()
 
-  clear: (queues, done) ->
-    if typeof queues is 'function'
-      done = queues
+  clear: (queueNames, done) ->
+    if typeof queueNames is 'function'
+      done = queueNames
       @tasks = {}
     else
-      for queue in queues
-        @tasks[queue] = {}
+      for queueName in queueNames
+        @tasks[queueName] = {}
 
     done null
 
@@ -65,17 +66,17 @@ class MemoryQueue
     @tasks[@getQueueName(queue)][taskId] = JSON.stringify {name, options, args}
     cb? null, taskId
 
-  consumeTasks: (queues) ->
-    if queues?.length > 1
+  consumeTasks: (queueNames) ->
+    if queueNames?.length > 1
       throw new Error "Multiple queues on a single listener not supported yet. Next release."
 
-    queueName = @getQueueName(queues?[0])
+    queueName = @getQueueName(queueNames?[0])
 
     for taskId of @tasks[queueName]
       task = @tasks[queueName][taskId]
-      
+
       @manager.emit 'messageRetrieved', queueName, task
-      
+
       taskArgs = JSON.parse task
 
       @manager.emit 'scheduledTaskRetrieved',
@@ -88,13 +89,13 @@ class MemoryQueue
   taskExecuted: (err, result) ->
     delete @tasks[result.queue][result.id] if result?.id
 
-  listen: (mqOptions, queues, cb) ->
-    if typeof queues is 'function'
-      cb = queues
-      queues = [@getQueueName(mqOptions.queueName)]
+  listen: (mqOptions, queueNames, cb) ->
+    if typeof queueNames is 'function'
+      cb = queueNames
+      queueNames = [@getQueueName(mqOptions.queueName or mqOptions.queue)]
 
     @listening = true
-    @consumeInterval = setInterval (=> @consumeTasks(queues) if @listening), CONSUME_INTERVAL unless @consumeInterval
+    @consumeInterval = setInterval (=> @consumeTasks(queueNames) if @listening), CONSUME_INTERVAL unless @consumeInterval
     cb? null
 
   stopListening: ->

@@ -13,7 +13,7 @@ RESERVE_TIMEOUT = parseInt(process.env.IRONMQ_RESERVE_TIMEOUT, 10) or 10000
 IRONMQ_LIMIT = parseInt(process.env.IRONMQ_LIMIT, 10) or 65536
 
 class IronMQQueue
-  BACKEND_NAME = 'ironmq'
+  BACKEND_NAME: 'ironmq'
 
   constructor: (@manager, @options)->
     @tasks   = {}
@@ -56,29 +56,31 @@ class IronMQQueue
     name or @manager.DEFAULT_QUEUE_NAME
 
   getQueue: (name) ->
-    @queues[name] ?= @client.queue @getQueueName name
-    return @queues[name]
+    queueName = @getQueueName(name)
+    @queues[queueName] ?= @client.queue(queueName)
+    return @queues[queueName]
 
   pause: ->
     @paused = true
-    clearInterval @consumeInterval if @consumeInterval
+    clearInterval(@consumeInterval) if @consumeInterval
     @consumeInterval = null
 
   resume: (options={}) ->
     @paused = false
-    @consumeInterval = setInterval (=> @consumeTasks() if @listening), CONSUME_INTERVAL unless @consumeInterval
+    @consumeInterval = setInterval((=> @consumeTasks() if @listening), CONSUME_INTERVAL) unless @consumeInterval
     if options.immediatePush
       @consumeTasks()
 
-  clear: (queues, cb) ->
-    if typeof queues is 'function'
-      cb     = queues
-      queues = (name for name, q of @queues)
+  clear: (queueNames, cb) ->
+    if typeof queueNames is 'function'
+      cb = queueNames
+      queueNames = (queueName for queueName, q of @queues)
 
-    async.forEach queues, (name, done) =>
-      @getQueue(name).del_queue (err, body) ->
-        done err
-    , (err) ->
+    async.each queueNames, @deleteQueue.bind(@), (err) ->
+      cb err
+
+  deleteQueue: (queueName, cb) ->
+    @getQueue(queueName).del_queue (err, body) ->
       cb err
 
   parseEncryptedTask: (scheduledTasks, task, cb) ->
@@ -120,7 +122,7 @@ class IronMQQueue
       errorMessage = "IronMQ message exceeed limit #{IRONMQ_LIMIT} - name: #{name}"
       logger.error errorMessage
       return cb new Error errorMessage
-    logger.debug "ironmq queue #{queueName} sendTask message:", message
+    logger.debug "ironmq queue '#{queueName}' sendTask message:", message
     @getQueue(queueName).post message, (err, taskId) ->
       cb err, taskId
 
@@ -158,13 +160,13 @@ class IronMQQueue
       options:        taskArgs.options
       queue:          queue
 
-  consumeTasks: (queues) ->
+  consumeTasks: (queueNames) ->
     toRetrieve = @options.messageSize or 1
 
-    if queues?.length > 1
+    if queueNames?.length > 1
       throw new Error "Multiple queues on a single listener not supported yet. Next release."
 
-    queueName = @getQueueName queues?[0]
+    queueName = @getQueueName queueNames?[0]
 
     @getQueue(queueName).reserve { n: toRetrieve, timeout: RESERVE_TIMEOUT}, (err, ironTasks) =>
       if err
@@ -175,17 +177,17 @@ class IronMQQueue
       if toRetrieve < 2 and ironTasks #.length > 0
         ironTasks = [ironTasks]
 
-      for ironTask in ironTasks or []
-        @manager.emit 'messageRetrieved', queueName, ironTasks
+      for ironTask in ironTasks or [] then do (ironTask) =>
+        @manager.emit 'messageRetrieved', queueName, ironTask
 
         message = ''
         if @encryption
-          tokencrypto.getDecrypted ironTask.body, @encryptionKey, (err, descryptedBody) =>
+          tokencrypto.getDecrypted ironTask.body, @encryptionKey, (err, decryptedBody) =>
             if err
               logger.warn "IVY_WARNING Cannot decrypt task from IronMQ", err
               @manager.emit 'mqError', err
 
-            message = descryptedBody
+            message = decryptedBody
             @emitConsumeTask message, queueName, ironTask
         else
           message = ironTask.body
@@ -197,10 +199,10 @@ class IronMQQueue
         logger.warn "IVY_WARNING Cannot delete task #{result.id} from IronMQ", err
         @manager.emit 'mqError', err
 
-  listen: (mqOptions, queues, cb) ->
-    if typeof queues is 'function'
-      cb = queues
-      queues = [@getQueueName(mqOptions.queueName)]
+  listen: (mqOptions, queueNames, cb) ->
+    if typeof queueNames is 'function'
+      cb = queueNames
+      queueNames = [@getQueueName(mqOptions.queueName or mqOptions.queue)]
 
     @listening = true
     async.series [
@@ -210,7 +212,7 @@ class IronMQQueue
         else
           @setupQueue mqOptions, next
     ], (err) =>
-      @consumeInterval = setInterval (=> @consumeTasks(queues) if @listening), CONSUME_INTERVAL unless @consumeInterval
+      @consumeInterval = setInterval (=> @consumeTasks(queueNames) if @listening), CONSUME_INTERVAL unless @consumeInterval
       cb? err
 
   stopListening: ->

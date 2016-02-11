@@ -26,7 +26,7 @@ describe 'Test unidirectional task', ->
         (next) ->
           ivy.setupQueue type: 'memory', next
       , (next) ->
-        queue.clear    next
+        queue.clear next
       , (next) ->
         ivy.listen     next
       , (next) ->
