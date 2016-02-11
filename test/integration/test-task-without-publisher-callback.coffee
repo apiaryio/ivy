@@ -24,11 +24,11 @@ describe 'Test unidirectional task', ->
       # TODO: Hmm...utility function for non-backend tests?
       async.series [
         (next) ->
-          ivy.setupQueue type: 'memory', next
+          ivy.setupQueue {type: 'memory', queueName: 'memoryQueue'}, next
       , (next) ->
         queue.clear next
       , (next) ->
-        ivy.listen     next
+        ivy.listen {queueName: 'memoryQueue'}, next
       , (next) ->
         ivy.startNotificationConsumer next
       , (next) ->
@@ -42,7 +42,10 @@ describe 'Test unidirectional task', ->
 
     describe 'and register factorial task without callback', ->
       before ->
-        ivy.registerTask factorial, name: 'factorial'
+        ivy.registerTask factorial, {name: 'factorial', queueName: 'memoryQueue'}
+
+      after ->
+        ivy.clearTasks()
 
       describe 'and execute it and wait until it is done', ->
         notifierExecuted = false

@@ -12,6 +12,9 @@ if process.env.REDIS_URL
 else
   describe.skip 'Redis Test Suite', -> it 'Dummy it'
 
+process.env.IRONMQ_TOKEN = 'DPUHV1ah8D1vetwV1UA_8LjH32U'
+process.env.IRONMQ_PROJECT_ID = '53e34de67cdb920009000054'
+
 try
   if ironCreds = require '../iron.json'
     process.env.IRONMQ_TOKEN      = ironCreds.token

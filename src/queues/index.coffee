@@ -54,6 +54,17 @@ class QueueManager extends EventEmitter
   onTaskExecuted: ->
     @queue.taskExecuted.apply @queue, arguments
 
+  addDefaultQueueName: ->
+    @queue?.queueNames ?= []
+    if @DEFAULT_QUEUE_NAME not in @queue.queueNames
+      @queue.queueNames.push(@DEFAULT_QUEUE_NAME)
+
+  fillFromTaskRegistry: ->
+    @queue?.queueNames ?= []
+    for own k, task of @ivy?.taskRegistry or {}
+      if task?.queueName? and task.queueName not in @queue.queueNames
+        @queue.queueNames.push(task.queueName)
+
   ###
   # Events
   ###

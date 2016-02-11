@@ -49,15 +49,20 @@ class Ivy extends EventEmitter
     else
       delete options.name
 
-    queueName = options.queue
+    manager.fillFromTaskRegistry()
+
+    # "options.queue" is DEPRECATED
+    # TODO: remove it once Ivy-usage is fixed in Applications
+    queueName = manager.queue.getQueueName(options.queueName or options.queue)
     if queueName
-      delete options.queue
+      delete options['queue']
+      delete options['queueName']
 
     @taskRegistry[name] = {
       func
       funcCb
       options
-      queue: queueName
+      queueName: queueName
     }
 
     @taskObjectRegistry[func] = name
@@ -68,7 +73,8 @@ class Ivy extends EventEmitter
   # Producer & Consumer testing: Clear tasks between tests
   ###
   clearTasks: ->
-    @taskRegistry       = {}
+    manager.queue?.queueNames = []
+    @taskRegistry = {}
     @taskObjectRegistry = {}
 
 
@@ -76,7 +82,7 @@ class Ivy extends EventEmitter
   # Consumer: Resolving tasks recieved from queue and calling them
   ###
 
-  scheduledTaskRetrieved: ({id, name, args, options, queue}) ->
+  scheduledTaskRetrieved: ({id, name, args, options, queueName}) ->
     called = false
     logger.silly "Retrieved task id #{id}"
     @executeTask name, args, (err, result...) =>
@@ -87,7 +93,7 @@ class Ivy extends EventEmitter
         notify = !!@taskRegistry[name].funcCb
         # last argument is the callback I am in
         args.pop()
-        @emit 'taskExecuted', err, {id, name, args, options, result, notify, queue}
+        @emit 'taskExecuted', err, {id, name, args, options, result, notify, queueName}
 
 
   executeTask: (name, args, cb) ->
@@ -147,14 +153,14 @@ class Ivy extends EventEmitter
       return cb err
 
     name = @taskObjectRegistry[func]
-    queueName = manager.queue.getQueueName(@taskRegistry[name].queue or @taskRegistry[name].queueName)
+    queueName = manager.queue.getQueueName(@taskRegistry[name].queueName)
 
-    logger.silly "Sending delayedCall for function #{name} into queue #{queueName} to backend #{manager.currentQueueType} with args", args
+    logger.silly "Sending delayedCall for function '#{name}' into queue '#{queueName}' to backend '#{manager.currentQueueType}' with args", args
 
     manager.sendTask
       name:    name
       options: @taskRegistry[name].options
-      queue:   queueName
+      queueName: queueName
       args:    args
     , (err) ->
       cb err
@@ -175,7 +181,11 @@ class Ivy extends EventEmitter
       cb    = options
       options = {}
 
-    logger.silly "Starting to listen to queue #{manager.queue.BACKEND_NAME}, options", options
+    if options.queue
+      options.queueName = options.queue
+      delete options['queue']
+
+    logger.silly "Starting to listen to queue '#{manager.queue.BACKEND_NAME}', options", options
 
     manager.listen.apply manager, [options, cb]
 

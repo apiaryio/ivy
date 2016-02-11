@@ -4,7 +4,7 @@
 
 ### Installation
 
-Installation is done via NPM, by running ```npm install ivy```
+Installation is done via NPM, by running `npm install ivy`
 
 ### Version 2 quick example (called TODO)
 
@@ -13,11 +13,11 @@ Installation is done via NPM, by running ```npm install ivy```
 var ivy = require('ivy');
 
 var factorial = function factorial(number, callback) {
-    callback(null, 42);
+  callback(null, 42);
 }
 
-var finished  = function resolved(result) {
-    console.log('result is', result);
+var finished = function resolved(result) {
+  console.log('result is', result);
 }
 
 
@@ -30,23 +30,23 @@ var finished  = function resolved(result) {
 // ...and name must be unique globally. "package.module.submodule.function"
 // pattern is highly encouraged.
 ivy.registerTask(factorial, finished, {
-   'name':   'testpackage.factorial',
-   'queue':  'testpackage' //,
+  'name':      'testpackage.factorial',
+  'queueName': 'testpackage' //,
 //    'route':  'testpackage.route1',
 //    'priority': 0,
 //    retry:    true,
 //    maxRetries: 10
 });
 
-if (process.env.NODE_ENV==='producer') {
+if (process.env.NODE_ENV === 'producer') {
 
   ivy.setupQueue({
-      type: 'ironmq',
-      auth: {
-          token:      process.env.IRONMQ_TOKEN      || 'dummy',
-          project_id: process.env.IRONMQ_PROJECT_ID || 'testpackage'
-      }
-      //, queue: 'testpackage' // optional, inferred from task
+    type: 'ironmq',
+    auth: {
+        token:      process.env.IRONMQ_TOKEN      || 'dummy',
+        project_id: process.env.IRONMQ_PROJECT_ID || 'testpackage'
+    }
+    //, queueName: 'testpackage' // optional, inferred from task
   });
 
 
@@ -62,13 +62,13 @@ if (process.env.NODE_ENV==='producer') {
   });
 
 }
-elseif (process.env.NODE_ENV==='worker') {
+elseif (process.env.NODE_ENV === 'worker') {
     ivy.startNotificationProducer({
         'type': 'redis',
         'url':  'redis://name:password@hostname:port'
     });
     ivy.listen({
-        queue: 'testpackage',
+        queueName: 'testpackage',
 
         type: 'ironmq',
         auth: {
@@ -114,7 +114,7 @@ Ivy touches the following workflow:
 
 * Think about context change
   * Last callback is about placing task in queue as opposed to having direct callback
-  * However, extracting to named function is needed 
+  * However, extracting to named function is needed
   * Multiple callbacks looks strange.
 
 * Explicit is better then implicit
@@ -125,7 +125,7 @@ Ivy touches the following workflow:
 * Task registries must be same on both sides
   * "Protocol" specification for backends in other languages
 
-* Serialization boundaries 
+* Serialization boundaries
   * There are (mostly) no requirements on payload in queues
   * Default "protocol" is JSON, should be separated into serialization module/package
   * Protobufs should be neat choice
@@ -152,26 +152,28 @@ There are a lot of parts and components in distributed environment. This is how 
 * **Task arguments**: Array of arguments for the `Task` *excluding* the last one (that *must* be callback. I.e. for function `factorial = (number, cb)`, the `arguments` are `[number]`, i.e. `[5]`.
 * **Sending task** is an act of creating `ScheduledTask` by serializing original `delayedCall` call into `Message` and putting it in `Queue`.
 * **Consuming tasks** is an act of retrieving `Messages` from `Queue` on `Consumer` done by `Listener`.
-* **Caller resume**: The act of resuming the workflow back on `Producer`, done by calling callback passed to original `delayedCall`.  
+* **Caller resume**: The act of resuming the workflow back on `Producer`, done by calling callback passed to original `delayedCall`.
 * **Task resolved**: Task has been executed and `Producer` notified -- or there has been an error.
 * **Notifier**: Service/process designed to inform `Producer` about `Task status` and/or `Task result`. Might be same piece of software/service as `Queue`.
-* **Notification channel**: Uniquely-named "queue" used to pass `Task result`s from *any* `Consumer` to *particular* `Producer`. 
+* **Notification channel**: Uniquely-named "queue" used to pass `Task result`s from *any* `Consumer` to *particular* `Producer`.
 * **Notifier backend**: Particular piece of software implementing `Notifier`'s role, i.e. `IronMQ`, `Redis`, ...
 
 ### Encryption support for IronMQ
 
-If you can encrypt all messages for better security add encryptionKey as password. We use `aes-256-cbc` algorithm for encrypt and decrypt messages.
+If you can encrypt all messages for better security add `encryptionKey` as password. We use `aes-256-cbc` algorithm to encrypt and decrypt messages.
 
-    ivy.setupQueue({
-        queue: 'testpackage',
+```javascript
+ivy.setupQueue({
+    queue: 'testpackage',
 
-        type: 'ironmq',
-        auth: {
-            token:      process.env.IRONMQ_TOKEN      || 'dummy',
-            project_id: process.env.IRONMQ_PROJECT_ID || 'testpackage'
-        },
-        encryptionKey:  process.env.MESSAGES_ENCRYPTION_KEY
-    });
+    type: 'ironmq',
+    auth: {
+        token:      process.env.IRONMQ_TOKEN      || 'dummy',
+        project_id: process.env.IRONMQ_PROJECT_ID || 'testpackage'
+    },
+    encryptionKey:  process.env.MESSAGES_ENCRYPTION_KEY
+});
+```
 
 ## Development
 

@@ -15,6 +15,7 @@ class MemoryQueue
     @tasks   = {}
     @paused  = false
     @ivy     = null
+    @queueNames = []
 
     @listening = false
     @consumeInterval = null
@@ -22,10 +23,20 @@ class MemoryQueue
   setupMain: (@ivy) ->
 
   setupQueue: (@options, cb) ->
+    @queueNames = []
+
+    if @options?.queueName and @options.queueName not in @queueNames
+      @queueNames.push(@options.queueName)
+
     cb null
 
   getQueueName: (name) ->
-    name          ?= @manager.DEFAULT_QUEUE_NAME
+    if not name and not @queueNames.length
+      @queueNames = []
+      @manager.fillFromTaskRegistry()
+      @manager.addDefaultQueueName()
+
+    name          ?= @queueNames[0]
     @tasks[name]  ?= {}
     return name
 
@@ -55,15 +66,17 @@ class MemoryQueue
       cb = options
       options = {}
 
+    queueName = options.queueName
+
     tasks = {}
-    for k, v of @tasks[@getQueueName(options.queue)]
+    for k, v of @tasks[@getQueueName(queueName)]
       tasks[k] = JSON.parse v
 
     cb null, tasks
 
-  sendTask: ({name, options, args, queue}, cb) ->
+  sendTask: ({name, options, args, queueName}, cb) ->
     taskId = uuid.v4()
-    @tasks[@getQueueName(queue)][taskId] = JSON.stringify {name, options, args}
+    @tasks[@getQueueName(queueName)][taskId] = JSON.stringify {name, options, args}
     cb? null, taskId
 
   consumeTasks: (queueNames) ->
@@ -84,15 +97,15 @@ class MemoryQueue
         name:      taskArgs.name
         args:      taskArgs.args
         options:   taskArgs.options
-        queue:     queueName
+        queueName: queueName
 
   taskExecuted: (err, result) ->
-    delete @tasks[result.queue][result.id] if result?.id
+    delete @tasks[result.queueName][result.id] if result?.id
 
   listen: (mqOptions, queueNames, cb) ->
     if typeof queueNames is 'function'
       cb = queueNames
-      queueNames = [@getQueueName(mqOptions.queueName or mqOptions.queue)]
+      queueNames = [@getQueueName(mqOptions.queueName)]
 
     @listening = true
     @consumeInterval = setInterval (=> @consumeTasks(queueNames) if @listening), CONSUME_INTERVAL unless @consumeInterval

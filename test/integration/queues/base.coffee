@@ -11,31 +11,33 @@ sinon       = require 'sinon'
 ivy         = require '../../../src'
 
 # internal
-{queue}     = require '../../../src/queues'
+queues     = require '../../../src/queues'
+
+manager = queues.queue
 
 
 getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
   describe 'Integration Queue Test', ->
 
     before (done) ->
-      queue.clear ['ivy', 'objectSendingQueue'], ->
+      manager.clear ['ivy', 'objectSendingQueue'], ->
         ivy.registerTask factorial, factorialFinished, {name: 'factorial'}
         ivy.registerTask sendObject, sendObjectFinished, {
           name: 'sendObject'
-          queue: 'objectSendingQueue'
+          queueName: 'objectSendingQueue'
         }
 
         done()
 
     after (done) ->
       ivy.clearTasks()
-      queue.clear ['ivy', 'objectSendingQueue'], ->
+      manager.clear ['ivy', 'objectSendingQueue'], ->
         done()
 
 
     describe 'When I configure queue', ->
       before (done) ->
-        setupFunction queue, done
+        setupFunction manager, done
 
       describe 'and send task into it', ->
         tasks = undefined
@@ -48,7 +50,7 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
           tasks = undefined
 
           before (done) ->
-            queue.getScheduledTasks (err, queueTasks) ->
+            manager.getScheduledTasks (err, queueTasks) ->
               if err then logger.error err
               tasks = queueTasks
               done err
@@ -63,7 +65,7 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
           tasks = undefined
 
           before (done) ->
-            queue.getScheduledTasks queue: 'objectSendingQueue', (err, queueTasks) ->
+            manager.getScheduledTasks {queueName: 'objectSendingQueue'}, (err, queueTasks) ->
               if err then logger.error err
               tasks = queueTasks
               done err
@@ -81,7 +83,7 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
           tasks = undefined
 
           before (done) ->
-            queue.getScheduledTasks queue: 'objectSendingQueue', (err, queueTasks) ->
+            manager.getScheduledTasks {queueName: 'objectSendingQueue'}, (err, queueTasks) ->
               tasks = queueTasks
               done err
 
@@ -92,7 +94,7 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
           tasks = undefined
 
           before (done) ->
-            queue.getScheduledTasks (err, queueTasks) ->
+            manager.getScheduledTasks (err, queueTasks) ->
               if err then logger.error err
               tasks = queueTasks
               done err
@@ -103,7 +105,7 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
 
       describe 'and when I attach consumer to the default queue', ->
         before (done) ->
-          queue.once 'scheduledTaskRetrieved', ->
+          manager.once 'scheduledTaskRetrieved', ->
             process.nextTick ->
               done null
 
@@ -114,20 +116,20 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
           ivy.stopListening()
 
         it 'default queue should be empty', (done) ->
-          queue.getScheduledTasks (err, queueTasks) ->
+          manager.getScheduledTasks (err, queueTasks) ->
             if err then logger.error err
             assert.equal 0, (i for i of queueTasks).length
             done err
 
         it 'objectSendingQueue should still contain one task', (done) ->
-          queue.getScheduledTasks queue: 'objectSendingQueue', (err, queueTasks) ->
+          manager.getScheduledTasks {queueName: 'objectSendingQueue'}, (err, queueTasks) ->
             assert.equal 1, (i for i of queueTasks).length
             done err
 
 
       describe 'and when I attach consumer to the objectSendingQueue queue', ->
         before (done) ->
-          queue.once 'scheduledTaskRetrieved', ->
+          manager.once 'scheduledTaskRetrieved', ->
             process.nextTick ->
               done null
 
@@ -138,7 +140,7 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
           ivy.stopListening()
 
         it 'default queue should be empty', (done) ->
-          queue.getScheduledTasks (err, queueTasks) ->
+          manager.getScheduledTasks (err, queueTasks) ->
             assert.equal 0, (i for i of queueTasks).length
             done err
 
@@ -149,14 +151,14 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
 
       before (done) ->
         ivySpy = sinon.spy(ivy, 'delayedCall')
-        queueSpy = sinon.spy(queue, 'sendTask')
+        queueSpy = sinon.spy(manager, 'sendTask')
 
         ivy.delayedCall factorial, 5, (err) ->
           done err
 
       after (done) ->
         ivy.delayedCall.restore()
-        queue.sendTask.restore()
+        manager.sendTask.restore()
         done()
 
       it 'check arguments for delayedCall are properly JSON.stringified', ->
@@ -170,7 +172,7 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
         expected = {
           name: "factorial"
           options: {}
-          queue: 'ivy'
+          queueName: 'ivy'
           args:[5]
         }
         assert.deepEqual actual, expected

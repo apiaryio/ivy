@@ -25,7 +25,6 @@ describe 'IronMQ Queue Backend Test', ->
       token:      process.env.IRONMQ_TOKEN
       projectId:  process.env.IRONMQ_PROJECT_ID
     encryptionKey: 'XXXX'
-    queueName: 'ivy'
 
   getBaseTestSuite mqOptions, (queue, done) ->
     ivy.setupQueue mqOptions, (err) ->
