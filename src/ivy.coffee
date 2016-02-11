@@ -147,13 +147,13 @@ class Ivy extends EventEmitter
       return cb err
 
     name = @taskObjectRegistry[func]
-    queueName = @taskRegistry[@taskObjectRegistry[func]].queue
+    queueName = manager.queue.getQueueName(@taskRegistry[name].queue or @taskRegistry[name].queueName)
 
     logger.silly "Sending delayedCall for function #{name} into queue #{queueName} to backend #{manager.currentQueueType} with args", args
 
     manager.sendTask
       name:    name
-      options: @taskRegistry[@taskObjectRegistry[func]].options
+      options: @taskRegistry[name].options
       queue:   queueName
       args:    args
     , (err) ->
@@ -175,7 +175,7 @@ class Ivy extends EventEmitter
       cb    = options
       options = {}
 
-    logger.silly "Starting to listen to queue #{queue.BACKEND_NAME}, options", options
+    logger.silly "Starting to listen to queue #{manager.queue.BACKEND_NAME}, options", options
 
     manager.listen.apply manager, [options, cb]
 
@@ -211,10 +211,10 @@ class Ivy extends EventEmitter
 
 
   # resumeQueue: ->
-  #   queue.pause.apply queue, arguments
+  #   manager.pause.apply manager, arguments
 
   # pauseQueue: ->
-  #   queue.resume.apply queue, arguments
+  #   manager.resume.apply manager, arguments
 
 module.exports = {
   Ivy
