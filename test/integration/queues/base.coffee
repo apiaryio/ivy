@@ -19,7 +19,7 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
 
     before (done) ->
       queue.clear ['ivy', 'objectSendingQueue'], ->
-        ivy.registerTask factorial, factorialFinished, name: 'factorial'
+        ivy.registerTask factorial, factorialFinished, {name: 'factorial'}
         ivy.registerTask sendObject, sendObjectFinished, {
           name: 'sendObject'
           queue: 'objectSendingQueue'
@@ -27,7 +27,10 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
 
         done()
 
-    after -> ivy.clearTasks()
+    after (done) ->
+      ivy.clearTasks()
+      queue.clear ['ivy', 'objectSendingQueue'], ->
+        done()
 
 
     describe 'When I configure queue', ->
@@ -163,9 +166,13 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
 
       it 'check arguments for sendTask', ->
         assert.equal 1, queueSpy.called
-        actual =  JSON.stringify queueSpy.args[0][0]
-        expected = '{"name":"factorial","options":{},"args":[5]}'
-        assert.equal actual, expected
+        actual =  queueSpy.args[0][0]
+        expected = {
+          name: "factorial"
+          options: {}
+          args:[5]
+        }
+        assert.deepEqual actual, expected
 
     additionalTests?()
 

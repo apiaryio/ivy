@@ -1,8 +1,10 @@
 
 {EventEmitter} = require 'events'
 logger         = require './logger'
-{queue}        = require './queues'
+queues         = require './queues'
 {notifier}     = require './notifiers'
+
+manager        = queues.queue
 
 class Ivy extends EventEmitter
   constructor: (options) ->
@@ -17,11 +19,13 @@ class Ivy extends EventEmitter
 
   # Setup main "singleton" instance of ivy that is used when requiring it
   setupMain: ->
-    queue.on 'scheduledTaskRetrieved', =>
-      @scheduledTaskRetrieved.apply @, arguments
+    manager.on 'scheduledTaskRetrieved', @onScheduledTaskRetrieved.bind(@)
 
-    queue.setupMain    @
+    manager.setupMain @
     notifier.setupMain @
+
+  onScheduledTaskRetrieved: ->
+    @scheduledTaskRetrieved.apply @, arguments
 
   ###
   # Producer & Consumer: Task registration and handling
@@ -145,9 +149,9 @@ class Ivy extends EventEmitter
     name = @taskObjectRegistry[func]
     queueName = @taskRegistry[@taskObjectRegistry[func]].queue
 
-    logger.silly "Sending delayedCall for function #{name} into queue #{queueName} to backend #{queue.currentQueue} with args", args
+    logger.silly "Sending delayedCall for function #{name} into queue #{queueName} to backend #{manager.currentQueueType} with args", args
 
-    queue.sendTask
+    manager.sendTask
       name:    name
       options: @taskRegistry[@taskObjectRegistry[func]].options
       queue:   queueName
@@ -160,7 +164,7 @@ class Ivy extends EventEmitter
   ###
 
   setupQueue: ->
-    queue.setupQueue.apply queue, arguments
+    manager.setupQueue.apply manager, arguments
 
   ###
   # Consumer: listening to queue events
@@ -173,11 +177,11 @@ class Ivy extends EventEmitter
 
     logger.silly "Starting to listen to queue #{queue.BACKEND_NAME}, options", options
 
-    queue.listen.apply queue, [options, cb]
+    manager.listen.apply manager, [options, cb]
 
   stopListening: ->
     logger.silly "Stopping queue listener"
-    queue.stopListening.apply queue, arguments
+    manager.stopListening.apply manager, arguments
 
   ###
   # Consumer & Producer: consuming/producing task notifications

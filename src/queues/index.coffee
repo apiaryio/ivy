@@ -31,26 +31,28 @@ class QueueManager extends EventEmitter
 
   constructor: ->
     @DEFAULT_QUEUE_NAME = 'ivy'
-    
-    @currentQueue = false
+
+    @currentQueueType = false
     @changeQueue 'memory'
 
-  changeQueue: (name, options={}) ->
-    if not QUEUE_TYPES[name]
-      throw new Error "Queue #{name} not available."
+  changeQueue: (queueType, options={}) ->
+    if not QUEUE_TYPES[queueType]
+      throw new Error "Queue #{queueType} not available."
 
-    unless @currentQueue is name
+    unless @currentQueueType is queueType
 
-      @queue = new QUEUE_TYPES[name] @, options
+      @queue = new QUEUE_TYPES[queueType] @, options
       @queue.setupMain(@ivy) if @ivy
 
-      @currentQueue = name
+      @currentQueueType = queueType
 
   setupMain: (@ivy) ->
     @queue.setupMain @ivy
 
-    @ivy.on 'taskExecuted', =>
-      @queue.taskExecuted.apply @queue, arguments
+    @ivy.on 'taskExecuted', @onTaskExecuted.bind(@)
+
+  onTaskExecuted: ->
+    @queue.taskExecuted.apply @queue, arguments
 
   ###
   # Events
