@@ -159,10 +159,10 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
         queue.sendTask.restore()
         done()
 
-      it 'check arguments for delayedCall', ->
+      it 'check arguments for delayedCall are properly JSON.stringified', ->
         assert.equal 1, ivySpy.called
         actual = JSON.stringify ivySpy.args
-        assert.equal actual, '[[null,5,null]]'
+        assert.strictEqual actual, '[[null,5,null]]'
 
       it 'check arguments for sendTask', ->
         assert.equal 1, queueSpy.called
@@ -170,6 +170,7 @@ getBaseTestSuite = (mqOptions, setupFunction, additionalTests) ->
         expected = {
           name: "factorial"
           options: {}
+          queue: 'ivy'
           args:[5]
         }
         assert.deepEqual actual, expected
