@@ -2,6 +2,12 @@ machine:
   services:
       - docker
 
+dependencies:
+  override:
+    - docker info
+    - docker-compose --version
+    - docker-compose build
+
 test:
   override:
     - docker-compose run ivy
