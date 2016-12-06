@@ -1,12 +1,7 @@
 machine:
-  node:
-    version: v0.10.42
-
-dependencies:
-  pre:
-    - npm install -g npm@latest-2
-    - npm install -g grunt-cli
+  services:
+      - docker
 
 test:
   override:
-    - grunt
+    - docker-compose run ivy

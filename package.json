@@ -49,6 +49,6 @@
   },
   "main": "lib/",
   "engines": {
-    "node": "*"
+    "node": "4"
   }
 }

@@ -1,5 +1,10 @@
-FROM        apiaryio/base-dev-nodejs
+FROM        apiaryio/nodejs:4
 MAINTAINER  Apiary <sre@apiary.io>
 
+RUN mkdir -p app
 
-CMD . ~/.nvm/nvm.sh; npm test
+COPY . /app
+
+WORKDIR "/app"
+
+CMD npm install

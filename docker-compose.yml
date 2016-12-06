@@ -3,6 +3,7 @@ data:
   volumes:
      - /tmp/ivydata/ironmq:/ironmq/db
      - /tmp/data/redis:/data/
+
 ironmq:
   image: iron/mq
   ports:
@@ -15,6 +16,7 @@ ironauth:
     - "8090:8090"
   volumes_from:
     - data
+
 ivy:
   hostname: ivy.dev
   build: .
@@ -22,5 +24,5 @@ ivy:
     - ironmq
     - ironauth
   volumes:
-    - test/:/home/ubuntu/app/test
+    - ./:/app
   command: npm test
