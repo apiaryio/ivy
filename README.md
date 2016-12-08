@@ -192,3 +192,13 @@ If you can encrypt all messages for better security add encryptionKey as passwor
 and
 
     npm publish
+
+## Using Docker
+
+### Installation
+
+    docker-compose build
+
+### Running tests
+
+    docker-compose run ivy
