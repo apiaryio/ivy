@@ -17,7 +17,7 @@ getEncrypted = (message, password, cb) ->
   encryptedMessage = ''
 
   try
-    cipher = crypto.createCipher SELECTED_ALGORITHM, crypto.createHash('sha512').update(password, 'binary').digest('binary')
+    cipher = crypto.createCipher SELECTED_ALGORITHM, new Buffer(crypto.createHash('sha512').update(password, 'binary').digest('binary'), 'binary')
     encryptedMessage += cipher.update message, 'utf-8', 'base64'
     encryptedMessage += cipher.final 'base64'
     # Might be thrown on bad input or when openssl is not compiled with SELECTED_ALGORITHM
@@ -36,9 +36,8 @@ getDecrypted = (encryptedMessage, password, cb) ->
 
     decText = ''
 
-    decipher = crypto.createDecipher cipher, crypto.createHash('sha512').update(password, 'binary').digest('binary')
+    decipher = crypto.createDecipher cipher, new Buffer(crypto.createHash('sha512').update(password, 'binary').digest('binary'), 'binary')
     decText += decipher.update rawEncToken, 'base64'
-
     decText += decipher.final 'utf-8'
     return cb null, decText
   # Might be thrown on bad input or when openssl is not compiled with SELECTED_ALGORITHM
