@@ -25,4 +25,5 @@ ivy:
     - ironauth
   volumes:
     - ./:/app
+    - /app/node_modules/
   command: npm test

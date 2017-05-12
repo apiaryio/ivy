@@ -1,4 +1,4 @@
-FROM        apiaryio/nodejs:4
+FROM        apiaryio/nodejs:6
 MAINTAINER  Apiary <sre@apiary.io>
 
 RUN mkdir -p app
