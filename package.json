@@ -1,7 +1,7 @@
 {
   "name": "ivy",
   "description": "Queue wrapper with node.js-ish interface.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": "Apiary Inc <support@apiary.io>",
   "contributors": [
     {
