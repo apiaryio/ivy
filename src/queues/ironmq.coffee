@@ -89,6 +89,11 @@ class IronMQQueue
 
     if tokencrypto.isEncrypted(task.body)
       tokencrypto.getDecrypted task.body, @encryptionKey, (err, decryptedBody) ->
+        if err
+          logger.warn "IVY_WARNING Cannot decrypt task from IronMQ", err
+          @manager.emit 'mqError', err
+          cb(err)
+
         if decryptedBody
           try
             scheduledTasks[task.id] = JSON.parse decryptedBody
