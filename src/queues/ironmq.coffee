@@ -92,7 +92,7 @@ class IronMQQueue
         if err
           logger.warn "IVY_WARNING Cannot decrypt task from IronMQ", err
           @manager.emit 'mqError', err
-          cb(err)
+          return cb(err)
 
         if decryptedBody
           try
@@ -101,13 +101,13 @@ class IronMQQueue
             logger.error "IVY_IRONMQ_ERROR Can't JSON.parse decryptedBody in parseEncryptedTask", e
         else
           return cb new Error "IVY_IRONMQ_ERROR Missing encryptionKey"
-        cb()
+        return cb()
     else
       try
         scheduledTasks[task.id] = JSON.parse task.body
       catch e
         logger.error "IVY_IRONMQ_ERROR Can't JSON.parse body in parseEncryptedTask", e
-      cb()
+      return cb()
 
   getScheduledTasks: (options, cb) ->
     if typeof options is 'function'
