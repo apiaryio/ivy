@@ -1,0 +1,18 @@
+box: node:8
+build:
+  steps:
+    - npm-install
+    - script:
+        name: build coffee
+        code: ./scripts/build
+    - npm-test
+  # Slack notification options https://github.com/wercker/step-slack
+  after-steps:
+    - slack-notifier:
+      url: $SLACK_URL
+
+services:
+  - name: ironmq
+    id: iron/mq
+  - name: ironauth
+    id: iron/auth
