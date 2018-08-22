@@ -6,6 +6,9 @@ build:
     - script:
         name: env
         code: env
+    - script:
+        name: node versions
+        code: node -v && npm -v
     - npm-install
     - script:
         name: redis-url
