@@ -8,6 +8,9 @@ build:
         code: env
     - npm-install
     - script:
+        name: redis-url
+        code: export REDIS_URL="redis://$REDIS_PORT_6379_TCP_ADDR"
+    - script:
         name: build coffee
         code: ./scripts/build
     - npm-test
