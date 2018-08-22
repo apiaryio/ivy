@@ -12,6 +12,7 @@ build:
       url: $SLACK_URL
 
 services:
+  - redis
   - name: ironmq
     id: iron/mq
   - name: ironauth
