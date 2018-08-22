@@ -1,6 +1,11 @@
 box: node:8
+services:
+  - redis
 build:
   steps:
+    - script:
+        name: env
+        code: env
     - npm-install
     - script:
         name: build coffee
@@ -11,9 +16,3 @@ build:
     - slack-notifier:
       url: $SLACK_URL
 
-services:
-  - redis
-  - name: ironmq
-    id: iron/mq
-  - name: ironauth
-    id: iron/auth
