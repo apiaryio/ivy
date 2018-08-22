@@ -9,7 +9,8 @@ build:
     - npm-install
     - script:
         name: redis-url
-        code: export REDIS_URL="redis://$REDIS_PORT_6379_TCP_ADDR"
+        code: |
+          export REDIS_URL="redis://$REDIS_PORT_6379_TCP_ADDR"
     - script:
         name: build coffee
         code: ./scripts/build
@@ -18,4 +19,3 @@ build:
   after-steps:
     - slack-notifier:
       url: $SLACK_URL
-
