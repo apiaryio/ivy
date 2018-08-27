@@ -1,3 +1,5 @@
+[![wercker status](https://app.wercker.com/status/4c8beab06abca20f3f59243de5d3f9d0/s/master "wercker status")](https://app.wercker.com/project/byKey/4c8beab06abca20f3f59243de5d3f9d0)
+
 ## Ivy
 
 [Ivy](https://github.com/apiaryio/ivy) is [node.js](http://nodejs.org) queue library focused on easy, yet flexible task execution.

@@ -69,20 +69,6 @@ describe 'Passing info through queue', ->
 
 describe 'Queue configuration', ->
   describe 'IronMQ', ->
-    describe 'When I listen to IronMQ queue', ->
-      before (done) ->
-        ivy.listen
-          type: 'ironmq'
-          auth:
-            token: 'dummy'
-            projectId: 'dummyId'
-        , done
-
-      it 'Queue backend should be IronMQ', ->
-        assert.ok queue.queue instanceof IronMQQueue
-
-
-
     describe 'When I try to listen to IronMQ queue without giving authentication', ->
       error = undefined
 

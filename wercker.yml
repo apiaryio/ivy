@@ -1,0 +1,24 @@
+box: node:8
+services:
+  - redis
+build:
+  steps:
+    - script:
+        name: env
+        code: env
+    - script:
+        name: node versions
+        code: node -v && npm -v
+    - npm-install
+    - script:
+        name: redis-url
+        code: |
+          export REDIS_URL="redis://$REDIS_PORT_6379_TCP_ADDR"
+    - script:
+        name: build coffee
+        code: ./scripts/build
+    - npm-test
+  # Slack notification options https://github.com/wercker/step-slack
+  after-steps:
+    - slack-notifier:
+      url: $SLACK_URL
